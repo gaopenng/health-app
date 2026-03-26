@@ -1,0 +1,259 @@
+/* ── CSS 变量 ─────────────────────────────────── */
+:root {
+  --bg:          #0f1117;
+  --bg-card:     #1a1d27;
+  --bg-card-2:   #22263a;
+  --border:      #2e3147;
+  --text:        #e8eaf0;
+  --text-muted:  #7c8099;
+  --accent:      #5b8dee;
+  --accent-2:    #43c98a;
+  --warn:        #f0a843;
+  --danger:      #e05c5c;
+  --radius:      12px;
+  --radius-sm:   8px;
+  --shadow:      0 2px 12px rgba(0,0,0,.35);
+}
+
+/* ── Reset ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── 工具类 ──────────────────────────────────── */
+.hidden { display: none !important; }
+
+/* ── 加载 / 错误 ──────────────────────────────── */
+#loading, #error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+  color: var(--text-muted);
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-box {
+  text-align: center;
+  padding: 40px;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  max-width: 360px;
+}
+.error-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+.error-box h2 { margin-bottom: 8px; color: var(--text); }
+.error-box p  { color: var(--text-muted); }
+
+/* ── Header ──────────────────────────────────── */
+.header {
+  padding: 20px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.header-inner {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.header h1 { font-size: 20px; font-weight: 600; }
+.updated-at { font-size: 12px; color: var(--text-muted); }
+
+.range-toggle {
+  display: flex;
+  gap: 8px;
+}
+.range-btn {
+  padding: 5px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all .15s;
+}
+.range-btn.active, .range-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ── Main ────────────────────────────────────── */
+.main {
+  padding: 20px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── 摘要卡片 ────────────────────────────────── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.card-label { font-size: 12px; color: var(--text-muted); }
+.card-value { font-size: 26px; font-weight: 700; letter-spacing: -.5px; }
+.card-sub   { font-size: 12px; color: var(--text-muted); min-height: 16px; }
+
+.card-bar-wrap {
+  height: 4px;
+  background: var(--bg-card-2);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.card-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width .4s ease;
+  width: 0;
+}
+.card-bar.protein { background: var(--accent-2); }
+.card-bar.warn    { background: var(--warn); }
+.card-bar.over    { background: var(--danger); }
+
+/* ── 图表网格 ────────────────────────────────── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chart-card--small { /* 占满半列，无特殊修改 */ }
+.chart-title { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.chart-wrap { position: relative; height: 200px; }
+.chart-wrap--donut { height: 180px; }
+
+/* 宏量营养素 */
+.macro-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.macro-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.macro-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.macro-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.macro-item-val { margin-left: auto; padding-left: 12px; font-weight: 600; }
+
+/* ── 热力图 ──────────────────────────────────── */
+.heatmap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.heatmap-cell {
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform .1s, opacity .1s;
+}
+.heatmap-cell:hover { transform: scale(1.2); opacity: .85; }
+.heatmap-rest    { background: var(--bg-card-2); }
+.heatmap-trained { background: var(--accent-2); }
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+.heatmap-legend .heatmap-cell { cursor: default; flex-shrink: 0; }
+.heatmap-legend .heatmap-cell:hover { transform: none; }
+
+/* ── 日详情面板 ──────────────────────────────── */
+.day-detail {
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.day-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+}
+.day-detail-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background .15s;
+}
+.day-detail-close:hover { background: var(--bg-card-2); color: var(--text); }
+.day-detail-body { color: var(--text-muted); font-size: 13px; line-height: 1.9; }
+.day-detail-body strong { color: var(--text); }
+
+/* ── 响应式 ──────────────────────────────────── */
+@media (max-width: 900px) {
+  .cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .header { padding: 16px 16px 0; }
+  .main   { padding: 16px 16px 40px; }
+  .cards  { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+  .macro-wrap { flex-direction: column; align-items: flex-start; }
+  .chart-wrap--donut { height: 160px; }
+}

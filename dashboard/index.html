@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>健康数据看板</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- 加载中 -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>加载中…</p>
+  </div>
+
+  <!-- 错误 -->
+  <div id="error" class="hidden">
+    <div class="error-box">
+      <span class="error-icon">🔗</span>
+      <h2>链接无效</h2>
+      <p>请确认链接是否正确，或联系管理员重新获取专属链接。</p>
+    </div>
+  </div>
+
+  <!-- 看板主体 -->
+  <div id="dashboard" class="hidden">
+
+    <header class="header">
+      <div class="header-inner">
+        <h1>健康数据看板</h1>
+        <span id="updated-at" class="updated-at"></span>
+      </div>
+      <!-- 时间维度切换 -->
+      <div class="range-toggle">
+        <button class="range-btn active" data-days="7">本周</button>
+        <button class="range-btn" data-days="30">本月</button>
+      </div>
+    </header>
+
+    <main class="main">
+
+      <!-- 摘要卡片 -->
+      <section class="cards">
+        <div class="card">
+          <div class="card-label">今日热量</div>
+          <div class="card-value" id="card-calories">—</div>
+          <div class="card-sub" id="card-calories-sub"></div>
+          <div class="card-bar-wrap">
+            <div class="card-bar" id="card-calories-bar"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">今日蛋白质</div>
+          <div class="card-value" id="card-protein">—</div>
+          <div class="card-sub" id="card-protein-sub"></div>
+          <div class="card-bar-wrap">
+            <div class="card-bar protein" id="card-protein-bar"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">最近体重</div>
+          <div class="card-value" id="card-weight">—</div>
+          <div class="card-sub" id="card-weight-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">本周训练</div>
+          <div class="card-value" id="card-workouts">—</div>
+          <div class="card-sub" id="card-workouts-sub"></div>
+        </div>
+      </section>
+
+      <!-- 图表区 -->
+      <section class="charts-grid">
+
+        <!-- 体重趋势 -->
+        <div class="chart-card">
+          <div class="chart-title">体重趋势</div>
+          <div class="chart-wrap">
+            <canvas id="chart-weight"></canvas>
+          </div>
+        </div>
+
+        <!-- 热量收支 -->
+        <div class="chart-card">
+          <div class="chart-title">每日热量</div>
+          <div class="chart-wrap">
+            <canvas id="chart-calories"></canvas>
+          </div>
+        </div>
+
+        <!-- 宏量营养素 -->
+        <div class="chart-card chart-card--small">
+          <div class="chart-title">宏量营养素（均值）</div>
+          <div class="macro-wrap">
+            <div class="chart-wrap chart-wrap--donut">
+              <canvas id="chart-macro"></canvas>
+            </div>
+            <div class="macro-legend" id="macro-legend"></div>
+          </div>
+        </div>
+
+        <!-- 训练热力图 -->
+        <div class="chart-card chart-card--small">
+          <div class="chart-title">训练热力图（近 30 天）</div>
+          <div id="heatmap" class="heatmap"></div>
+          <div class="heatmap-legend">
+            <span class="heatmap-cell heatmap-rest"></span> 休息
+            <span class="heatmap-cell heatmap-trained"></span> 训练
+          </div>
+        </div>
+
+      </section>
+
+      <!-- 日详情面板（点击某天出现） -->
+      <div id="day-detail" class="day-detail hidden">
+        <div class="day-detail-header">
+          <span id="day-detail-date"></span>
+          <button class="day-detail-close" id="day-detail-close">✕</button>
+        </div>
+        <div class="day-detail-body" id="day-detail-body"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+{
+  "generated_at": "2026-03-26T10:01:51.067Z",
+  "profile": {
+    "daily_calorie_target": 2000,
+    "protein_target_g": 120,
+    "weekly_workout_target": 3
+  },
+  "weight_history": [
+    {
+      "date": "2026-02-28",
+      "weight_kg": 76.4
+    },
+    {
+      "date": "2026-03-01",
+      "weight_kg": 76.3
+    },
+    {
+      "date": "2026-03-05",
+      "weight_kg": 76.3
+    },
+    {
+      "date": "2026-03-14",
+      "weight_kg": 76.2
+    },
+    {
+      "date": "2026-03-21",
+      "weight_kg": 76.1
+    },
+    {
+      "date": "2026-03-26",
+      "weight_kg": 76
+    }
+  ],
+  "daily_stats": [
+    {
+      "date": "2026-02-25",
+      "calories": 1712,
+      "protein_g": 108,
+      "carb_g": 245,
+      "fat_g": 48,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-02-26",
+      "calories": 1656,
+      "protein_g": 87,
+      "carb_g": 193,
+      "fat_g": 59,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-02-27",
+      "calories": 1453,
+      "protein_g": 103,
+      "carb_g": 216,
+      "fat_g": 56,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-02-28",
+      "calories": 1892,
+      "protein_g": 135,
+      "carb_g": 207,
+      "fat_g": 57,
+      "workout_count": 3,
+      "trained": true
+    },
+    {
+      "date": "2026-03-01",
+      "calories": 1682,
+      "protein_g": 123,
+      "carb_g": 224,
+      "fat_g": 49,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-02",
+      "calories": 1488,
+      "protein_g": 108,
+      "carb_g": 169,
+      "fat_g": 53,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-03",
+      "calories": 1639,
+      "protein_g": 111,
+      "carb_g": 243,
+      "fat_g": 64,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-03-04",
+      "calories": 2001,
+      "protein_g": 132,
+      "carb_g": 164,
+      "fat_g": 58,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-05",
+      "calories": 2084,
+      "protein_g": 112,
+      "carb_g": 215,
+      "fat_g": 66,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-03-06",
+      "calories": 1728,
+      "protein_g": 111,
+      "carb_g": 223,
+      "fat_g": 50,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-07",
+      "calories": 1490,
+      "protein_g": 96,
+      "carb_g": 194,
+      "fat_g": 66,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-08",
+      "calories": 1983,
+      "protein_g": 136,
+      "carb_g": 187,
+      "fat_g": 43,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-03-09",
+      "calories": 1587,
+      "protein_g": 103,
+      "carb_g": 183,
+      "fat_g": 61,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-10",
+      "calories": 1577,
+      "protein_g": 116,
+      "carb_g": 248,
+      "fat_g": 57,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-11",
+      "calories": 2162,
+      "protein_g": 94,
+      "carb_g": 156,
+      "fat_g": 58,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-12",
+      "calories": 2064,
+      "protein_g": 104,
+      "carb_g": 212,
+      "fat_g": 61,
+      "workout_count": 3,
+      "trained": true
+    },
+    {
+      "date": "2026-03-13",
+      "calories": 1948,
+      "protein_g": 125,
+      "carb_g": 187,
+      "fat_g": 43,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-03-14",
+      "calories": 1870,
+      "protein_g": 84,
+      "carb_g": 222,
+      "fat_g": 42,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-15",
+      "calories": 1647,
+      "protein_g": 133,
+      "carb_g": 183,
+      "fat_g": 55,
+      "workout_count": 1,
+      "trained": true
+    },
+    {
+      "date": "2026-03-16",
+      "calories": 1872,
+      "protein_g": 107,
+      "carb_g": 152,
+      "fat_g": 65,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-17",
+      "calories": 1661,
+      "protein_g": 134,
+      "carb_g": 180,
+      "fat_g": 45,
+      "workout_count": 1,
+      "trained": true
+    },
+    {
+      "date": "2026-03-18",
+      "calories": 1854,
+      "protein_g": 83,
+      "carb_g": 237,
+      "fat_g": 65,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-19",
+      "calories": 1692,
+      "protein_g": 117,
+      "carb_g": 247,
+      "fat_g": 43,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-03-20",
+      "calories": 1953,
+      "protein_g": 138,
+      "carb_g": 213,
+      "fat_g": 55,
+      "workout_count": 3,
+      "trained": true
+    },
+    {
+      "date": "2026-03-21",
+      "calories": 2139,
+      "protein_g": 131,
+      "carb_g": 229,
+      "fat_g": 42,
+      "workout_count": 3,
+      "trained": true
+    },
+    {
+      "date": "2026-03-22",
+      "calories": 2025,
+      "protein_g": 101,
+      "carb_g": 181,
+      "fat_g": 49,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-23",
+      "calories": 1698,
+      "protein_g": 86,
+      "carb_g": 158,
+      "fat_g": 51,
+      "workout_count": 2,
+      "trained": true
+    },
+    {
+      "date": "2026-03-24",
+      "calories": 1796,
+      "protein_g": 93,
+      "carb_g": 189,
+      "fat_g": 43,
+      "workout_count": 1,
+      "trained": true
+    },
+    {
+      "date": "2026-03-25",
+      "calories": 1575,
+      "protein_g": 120,
+      "carb_g": 157,
+      "fat_g": 50,
+      "workout_count": 0,
+      "trained": false
+    },
+    {
+      "date": "2026-03-26",
+      "calories": 1461,
+      "protein_g": 135,
+      "carb_g": 188,
+      "fat_g": 48,
+      "workout_count": 1,
+      "trained": true
+    }
+  ],
+  "recent_workouts": [
+    {
+      "date": "2026-03-17",
+      "exercises": [
+        "卧推",
+        "深蹲"
+      ]
+    },
+    {
+      "date": "2026-03-19",
+      "exercises": [
+        "卧推",
+        "深蹲"
+      ]
+    },
+    {
+      "date": "2026-03-20",
+      "exercises": [
+        "卧推",
+        "深蹲"
+      ]
+    },
+    {
+      "date": "2026-03-21",
+      "exercises": [
+        "卧推",
+        "深蹲"
+      ]
+    },
+    {
+      "date": "2026-03-23",
+      "exercises": [
+        "卧推",
+        "深蹲",
+        "跑步"
+      ]
+    },
+    {
+      "date": "2026-03-24",
+      "exercises": [
+        "卧推",
+        "深蹲"
+      ]
+    },
+    {
+      "date": "2026-03-26",
+      "exercises": [
+        "卧推"
+      ]
+    }
+  ]
+}
