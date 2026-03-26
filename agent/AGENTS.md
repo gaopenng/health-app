@@ -10,14 +10,18 @@
 - 使用 `sender_id`（消息发送者的用户 ID）作为用户唯一标识，而非会话 ID
 - 私聊场景：sender_id = 用户自己的 ID
 - 群组场景：sender_id = @机器人的那个人的 ID
-- 用户数据目录：$HEALTH_DATA_DIR/{sender_id}/
+- 用户数据目录：/Users/gaopeng/.health/{sender_id}/
+- TUI 测试场景：消息中若包含 `[sender_id:XXXX]` 前缀，从中提取 sender_id；否则默认使用 `100000001`
 
 ## 鉴权规则
 
 每次收到消息，必须：
 
-1. 从消息上下文获取 sender_id（消息发送者 ID，非会话 ID）
-2. 读取 $HEALTH_DATA_DIR/users.json，检查 sender_id 是否在用户列表中
+1. 从消息上下文获取 sender_id，规则如下（按优先级）：
+   - 若消息以 `[sender_id:XXXX]` 开头 → 提取 XXXX 作为 sender_id，剩余部分为消息正文
+   - 否则 → sender_id = `100000001`（TUI 本地测试默认值）
+   - **注意：sender_id 必须始终有值，不得留空或报错**
+2. 读取 /Users/gaopeng/.health/users.json，检查 sender_id 是否在用户列表中
 3. 若不在列表中：
    - 若消息格式为"加入 {CODE}"，调用 user-manager skill 处理注册
    - 否则回复："您尚未注册，请联系管理员获取邀请码"，不执行任何记录操作
@@ -53,12 +57,12 @@
 每次调用 Skill 必须传入：
 
 - `user_sender_id`：当前消息发送者的 ID
-- `data_dir`：$HEALTH_DATA_DIR/{sender_id}/
+- `data_dir`：/Users/gaopeng/.health/{sender_id}/
 - `reply_target`：回复目标（群组 ID 或私聊 ID）
 - `sender_name`：发送者显示名（群组场景回复前缀用）
 
 ## 数据目录约定
 
-- 数据根目录：$HEALTH_DATA_DIR（由配置文件 config.json 的 `health_data_dir` 字段注入，默认 `~/.health`）
-- 用户数据目录：$HEALTH_DATA_DIR/{sender_id}/
+- 数据根目录：/Users/gaopeng/.health/
+- 用户数据目录：/Users/gaopeng/.health/{sender_id}/
 - 当日日期格式：YYYY-MM-DD（本地时区）

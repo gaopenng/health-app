@@ -8,7 +8,7 @@ OpenClaw Cron，表达式：`every sunday at 20:00`
 
 Cron prompt：
 ```
-执行每周周报推送任务。读取 $HEALTH_DATA_DIR/users.json，
+执行每周周报推送任务。读取 /Users/gaopeng/.health/users.json，
 对所有 status=active 的用户，调用 weekly-review skill，
 传入各自的 sender_id，逐一生成并推送周报。
 ```

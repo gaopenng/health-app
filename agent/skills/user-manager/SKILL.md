@@ -16,7 +16,7 @@
 1. 校验操作者 role=admin（读取 users.json 验证）
 2. 生成 6 位大写字母数字组合：
    - 字符集 32 个（A-Z + 2-9，排除易混淆的 0/O/I/1）
-3. 写入 $HEALTH_DATA_DIR/invites.json，设置 expires_at = today + 7 days
+3. 写入 /Users/gaopeng/.health/invites.json，设置 expires_at = today + 7 days
 4. 返回邀请码和使用说明
 ```
 
@@ -37,14 +37,14 @@
 **执行流程：**
 
 ```
-1. 读取 $HEALTH_DATA_DIR/invites.json，查找 code 匹配项
+1. 读取 /Users/gaopeng/.health/invites.json，查找 code 匹配项
 2. 校验：code 存在 && used_by=null && expires_at > today
 3. 若无效：回复"邀请码无效或已过期"
 4. 若有效：
    a. 生成用户 dashboard_token（UUID v4）
    b. 在 users.json 追加新用户记录：
       - daily_report_target 默认为 dm:{sender_id}（私聊推送）
-   c. 创建目录 $HEALTH_DATA_DIR/{sender_id}/
+   c. 创建目录 /Users/gaopeng/.health/{sender_id}/
    d. 写入默认 profile.json：
       - daily_calorie_target: 2000
       - protein_target_g: 120
@@ -77,7 +77,7 @@ https://health.pages.dev?token=xyz789
 
 ```
 1. 校验操作者 role=admin
-2. 读取 $HEALTH_DATA_DIR/users.json
+2. 读取 /Users/gaopeng/.health/users.json
 3. 格式化返回用户列表
 ```
 

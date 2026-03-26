@@ -8,7 +8,7 @@ OpenClaw Cron，表达式：`every day at 21:00`
 
 Cron prompt：
 ```
-执行每日日报推送任务。读取 $HEALTH_DATA_DIR/users.json，
+执行每日日报推送任务。读取 /Users/gaopeng/.health/users.json，
 对所有 status=active 的用户，调用 daily-report skill，
 传入各自的 sender_id，逐一生成并推送日报。
 ```
@@ -33,7 +33,7 @@ Cron prompt：
 
 6. 组装日报消息（格式见下）
 
-7. 读取 $HEALTH_DATA_DIR/users.json 中该用户的 daily_report_target 字段：
+7. 读取 /Users/gaopeng/.health/users.json 中该用户的 daily_report_target 字段：
    - "group:{群组ID}" → 推送到群组
    - "dm:{sender_id}" → 推送到私聊
 
