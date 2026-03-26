@@ -1,1 +1,10 @@
 config.local.json
+
+# OpenClaw 运行时自动生成的文件（不进 git）
+agent/.openclaw/
+agent/BOOTSTRAP.md
+agent/HEARTBEAT.md
+agent/IDENTITY.md
+agent/SOUL.md
+agent/TOOLS.md
+agent/USER.md
