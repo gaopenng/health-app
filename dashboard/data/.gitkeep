@@ -1,0 +1,5 @@
+# Health Dashboard
+
+专属健康数据看板，通过私密 token 链接访问。
+
+访问方式：`https://your-domain.pages.dev?token=YOUR_TOKEN`

@@ -1,0 +1,12 @@
+{
+  "admin": {
+    "sender_id": "your_sender_id",
+    "name": "your_name"
+  },
+  "feishu": {
+    "app_id": "cli_xxxxxxxxxxxxxxxx",
+    "app_secret": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "encrypt_key": "",
+    "verification_token": ""
+  }
+}

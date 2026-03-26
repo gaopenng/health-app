@@ -1,0 +1,18 @@
+{
+  "bindings": [
+    {
+      "agentId": "health-agent",
+      "match": {
+        "channel": "telegram",
+        "accountId": "*"
+      }
+    },
+    {
+      "agentId": "health-agent",
+      "match": {
+        "channel": "feishu",
+        "accountId": "*"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "health_data_dir": "~/.health",
+  "dashboard_data_dir": "./dashboard/data",
+  "admin": {
+    "sender_id": "",
+    "name": ""
+  },
+  "feishu": {
+    "app_id": "",
+    "app_secret": "",
+    "encrypt_key": "",
+    "verification_token": "",
+    "domain": "feishu",
+    "connection_mode": "websocket"
+  }
+}
