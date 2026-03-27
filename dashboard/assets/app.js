@@ -2,22 +2,19 @@
 let DATA = null;         // 原始 JSON 数据
 let DAYS = 7;            // 当前时间维度（7 或 30）
 let charts = {};         // Chart.js 实例缓存
+let TOKEN = null;        // 当前 dashboard token
 
 /* ── 入口 ─────────────────────────────────────────────────────────── */
 (async function init() {
-  const token = new URLSearchParams(location.search).get('token');
-  if (!token) return showError();
+  TOKEN = new URLSearchParams(location.search).get('token');
+  if (!TOKEN) return showError();
 
-  try {
-    const res = await fetch(`data/${token}.json`);
-    if (!res.ok) return showError();
-    DATA = await res.json();
-  } catch {
-    return showError();
-  }
+  const ok = await loadDashboardData();
+  if (!ok) return showError();
 
   showDashboard();
   bindRangeToggle();
+  bindRefreshButton();
   render();
 })();
 
@@ -30,11 +27,29 @@ function showError() {
 function showDashboard() {
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('dashboard').classList.remove('hidden');
-  // 更新时间
-  if (DATA.generated_at) {
-    const d = new Date(DATA.generated_at);
-    document.getElementById('updated-at').textContent =
-      `更新于 ${d.toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })}`;
+  updateTimestamp();
+}
+
+function updateTimestamp(extraText = '') {
+  const el = document.getElementById('updated-at');
+  if (!el) return;
+  if (!DATA?.generated_at) {
+    el.textContent = extraText;
+    return;
+  }
+  const d = new Date(DATA.generated_at);
+  const base = `更新于 ${d.toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })}`;
+  el.textContent = extraText ? `${base} · ${extraText}` : base;
+}
+
+async function loadDashboardData() {
+  try {
+    const res = await fetch(`data/${TOKEN}.json?t=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return false;
+    DATA = await res.json();
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -50,6 +65,30 @@ function bindRangeToggle() {
   });
 }
 
+function bindRefreshButton() {
+  const btn = document.getElementById('refresh-btn');
+  if (!btn) return;
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = '刷新中...';
+    updateTimestamp('正在拉取最新数据');
+
+    const ok = await loadDashboardData();
+    if (ok) {
+      render();
+      updateTimestamp('刚刚刷新');
+    } else {
+      updateTimestamp('刷新失败，请重试');
+    }
+
+    window.setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '刷新数据';
+      updateTimestamp();
+    }, ok ? 1200 : 1800);
+  });
+}
+
 /* ── 主渲染入口 ───────────────────────────────────────────────────── */
 function render() {
   const sliced = sliceStats(DAYS);
@@ -58,6 +97,7 @@ function render() {
   renderCaloriesChart(sliced);
   renderMacroDonut(sliced);
   renderHeatmap();   // 热力图固定显示近 30 天
+  document.getElementById('day-detail').classList.add('hidden');
 }
 
 /* ── 数据切片工具 ─────────────────────────────────────────────────── */
