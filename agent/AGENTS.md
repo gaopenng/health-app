@@ -13,36 +13,47 @@
 
 - `health_data_dir = ~/.health`
 - `dashboard_data_dir = ../dashboard/data`
+- `default_user_id = ""`
+- `default_channel = "unknown"`
 - `default_sender_id = ""`
 - `default_sender_name = "用户"`
 
-后文中的 `{health_data_dir}`、`{dashboard_data_dir}`、`{default_sender_id}`、`{default_sender_name}` 都指代该配置中的值。
+后文中的 `{health_data_dir}`、`{dashboard_data_dir}`、`{default_user_id}`、`{default_channel}`、`{default_sender_id}`、`{default_sender_name}` 都指代该配置中的值。
 
 ## 用户标识约定
 
-- 使用 `sender_id`（消息发送者的用户 ID）作为用户唯一标识，而非会话 ID
-- 私聊场景：`sender_id = 用户自己的 ID`
-- 群组场景：`sender_id = @机器人的那个人的 ID`
-- 用户数据目录：`{health_data_dir}/{sender_id}/`
+- 使用 `user_id` 作为内部唯一用户标识，使用 `identities[]` 维护渠道身份映射
+- 私聊场景：`sender_id = 用户自己的渠道 ID`
+- 群组场景：`sender_id = @机器人的那个人的渠道 ID`
+- 用户数据目录：`{health_data_dir}/{user_id}/`
 - TUI / CLI 本地测试场景：若消息中包含 `[sender_id:XXXX]` 前缀，优先使用该值
+- 若消息中包含 `[channel:telegram]`、`[channel:feishu]` 前缀，优先使用该值；否则从消息元数据推断渠道
 
 ## 鉴权规则
 
 每次收到消息，必须：
 
-1. 从消息上下文获取 `sender_id`，按以下优先级处理：
+1. 从消息上下文获取 `sender_id` 和 `channel`，按以下优先级处理：
    - 消息元数据中的发送者字段，例如 `sender_id`、`message.sender.id`、`event.sender.sender_id`、`from.id`、`user.id`
    - 若消息以 `[sender_id:XXXX]` 开头 → 提取 `XXXX` 作为 `sender_id`，剩余部分为消息正文
-   - 若仍为空 → 使用 `{default_sender_id}`（便于本机 TUI / CLI 冒烟测试）
+   - 渠道优先读取消息元数据；若消息中含 `[channel:XXXX]` 前缀，则以该值为准
+   - 若 `sender_id` 仍为空 → 使用 `{default_sender_id}`（便于本机 TUI / CLI 冒烟测试）
+   - 若 `channel` 仍为空 → 使用 `{default_channel}`
 2. 若 `sender_id` 仍为空：
    - 回复：`配置错误：缺少 sender_id，请检查消息上下文或 .openclaw/health-config.json`
    - 立即停止，不执行任何记录操作
-3. 读取 `{health_data_dir}/users.json`，检查 `sender_id` 是否在用户列表中
-4. 若不在列表中：
+3. 读取 `{health_data_dir}/users.json`，按以下规则解析用户：
+   - 先匹配 `user_id`
+   - 否则在 `identities[]` 中查找 `{channel, sender_id}`
+   - 若是旧格式数据且只有顶层 `sender_id`，将其视为兼容身份
+4. 若未匹配到用户：
    - 若消息格式为 `加入 {CODE}`，调用 `user-manager` skill 处理注册
    - 否则回复：`您尚未注册，请联系管理员获取邀请码`
    - 不执行任何记录操作
-5. 若在列表中：继续意图识别
+5. 若匹配到用户：
+   - 取该用户的 `user_id`
+   - 所有读写均使用 `{health_data_dir}/{user_id}/`
+   - 再继续意图识别
 
 ## 意图识别规则（按优先级）
 
@@ -83,14 +94,16 @@
 每次调用 skill 必须传入：
 
 - `user_sender_id`：当前消息发送者的 ID
-- `data_dir`：`{health_data_dir}/{sender_id}`
+- `user_id`：内部稳定用户 ID
+- `user_channel`：当前命中的渠道，如 `telegram` / `feishu`
+- `data_dir`：`{health_data_dir}/{user_id}`
 - `reply_target`：回复目标（群组 ID 或私聊 ID）
 - `sender_name`：发送者显示名；优先从消息上下文获取，若为空则回退到 `{default_sender_name}`
 
 ## 数据目录约定
 
 - 数据根目录：`{health_data_dir}`
-- 用户数据目录：`{health_data_dir}/{sender_id}`
+- 用户数据目录：`{health_data_dir}/{user_id}`
 - 聚合数据目录：`{dashboard_data_dir}`
 - 当日日期格式：`YYYY-MM-DD`（本地时区）
 - 原始记录目录格式：`{type}/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`

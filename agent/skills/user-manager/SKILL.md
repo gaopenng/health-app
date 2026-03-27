@@ -41,17 +41,19 @@
 2. 校验：code 存在 && used_by=null && expires_at > today
 3. 若无效：回复"邀请码无效或已过期"
 4. 若有效：
-   a. 生成用户 dashboard_token（UUID v4）
+   a. 生成内部 `user_id` 与用户 `dashboard_token`（UUID v4）
    b. 在 users.json 追加新用户记录：
-      - daily_report_target 默认为 dm:{sender_id}（私聊推送）
-   c. 创建目录 {health_data_dir}/{sender_id}/
+      - `user_id` 为内部主键
+      - `identities[]` 至少写入当前这条 `{channel, sender_id}`
+      - `daily_report_target` 默认为 `{channel}:dm:{sender_id}`；旧数据兼容 `dm:{sender_id}`
+   c. 创建目录 {health_data_dir}/{user_id}/
    d. 写入默认 profile.json：
       - daily_calorie_target: 2000
       - protein_target_g: 120
       - carb_target_g: 250
       - fat_target_g: 65
       - weekly_workout_target: 3
-   e. 标记 invite code 的 used_by = 新用户 sender_id
+   e. 标记 invite code 的 used_by = 新用户 user_id
    f. 回复注册成功消息 + 专属 Dashboard 链接
 ```
 
@@ -104,12 +106,24 @@ https://health.pages.dev?token=xyz789
 {
   "users": [
     {
+      "user_id": "akihi",
       "sender_id": "123456789",
+      "channel": "telegram",
+      "identities": [
+        {
+          "channel": "telegram",
+          "sender_id": "123456789"
+        },
+        {
+          "channel": "feishu",
+          "sender_id": "ou_xxx"
+        }
+      ],
       "name": "陛下",
       "role": "admin",
       "status": "active",
       "dashboard_token": "550e8400-e29b-41d4-a716-446655440000",
-      "daily_report_target": "group:chat_id_xxx",
+      "daily_report_target": "telegram:group:chat_id_xxx",
       "registered_at": "2026-03-23",
       "last_active_at": "2026-03-24"
     }
@@ -133,4 +147,10 @@ https://health.pages.dev?token=xyz789
 }
 ```
 
-> `daily_report_target`：格式为 `group:{群组ID}` 或 `dm:{用户ID}`。注册时默认私聊，加入群组后可更新为群组。
+## 身份映射约定
+
+- `user_id` 是内部稳定主键，也是数据目录名
+- `identities[]` 是渠道身份映射，同一个真人跨 Telegram / 飞书时应追加身份，而不是新建第二个用户
+- 旧格式只有顶层 `sender_id` 的用户记录仍需兼容读取
+
+> `daily_report_target` 推荐格式为 `{channel}:group:{群组ID}` 或 `{channel}:dm:{用户ID}`。旧格式 `group:{群组ID}` / `dm:{用户ID}` 仍需兼容读取。

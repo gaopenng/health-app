@@ -50,11 +50,15 @@ function isoDaysAgo(days) {
 
 const users = [
   {
-    sender_id: 'mock_user_001',
+    user_id: 'mock-user-momo',
     name: 'Momo',
     role: 'member',
     dashboard_token: 'mock-dashboard-momo',
-    daily_report_target: 'dm:mock_user_001',
+    daily_report_target: 'telegram:dm:mock_user_001',
+    identities: [
+      { channel: 'telegram', sender_id: 'mock_user_001' },
+      { channel: 'feishu', sender_id: 'ou_mock_user_001' },
+    ],
     profile: {
       daily_calorie_target: 2100,
       protein_target_g: 145,
@@ -67,11 +71,15 @@ const users = [
     seed: 101,
   },
   {
-    sender_id: 'mock_user_002',
+    user_id: 'mock-user-luna',
     name: 'Luna',
     role: 'member',
     dashboard_token: 'mock-dashboard-luna',
-    daily_report_target: 'dm:mock_user_002',
+    daily_report_target: 'telegram:dm:mock_user_002',
+    identities: [
+      { channel: 'telegram', sender_id: 'mock_user_002' },
+      { channel: 'feishu', sender_id: 'ou_mock_user_002' },
+    ],
     profile: {
       daily_calorie_target: 1850,
       protein_target_g: 120,
@@ -84,6 +92,10 @@ const users = [
     seed: 202,
   },
 ];
+
+function hasUserId(user, targetUserId) {
+  return user.user_id === targetUserId;
+}
 
 function buildMeals(dayOffset, user) {
   const rand = mulberry32(user.seed + dayOffset * 17);
@@ -99,7 +111,7 @@ function buildMeals(dayOffset, user) {
       { name: '水煮蛋', amount: '2 个', calories_est: 140, protein_est_g: 12, carb_est_g: 1, fat_est_g: 10 },
     ],
   };
-  const lunchProtein = user.sender_id === 'mock_user_001' ? '鸡胸肉藜麦饭' : '三文鱼饭';
+  const lunchProtein = hasUserId(user, 'mock-user-momo') ? '鸡胸肉藜麦饭' : '三文鱼饭';
   const lunch = {
     id: 'meal_002',
     meal_type: 'lunch',
@@ -115,9 +127,9 @@ function buildMeals(dayOffset, user) {
     id: 'meal_003',
     meal_type: 'dinner',
     time: formatTime(19, 5),
-    description: user.sender_id === 'mock_user_001' ? '牛肉意面 + 沙拉' : '豆腐饭 + 炒青菜',
+    description: hasUserId(user, 'mock-user-momo') ? '牛肉意面 + 沙拉' : '豆腐饭 + 炒青菜',
     source: 'text',
-    items: user.sender_id === 'mock_user_001'
+    items: hasUserId(user, 'mock-user-momo')
       ? [
           { name: '牛肉意面', amount: '1 盘', calories_est: 640 + Math.round(rand() * 80), protein_est_g: 36, carb_est_g: 66, fat_est_g: 22 },
           { name: '蔬菜沙拉', amount: '1 碗', calories_est: 110, protein_est_g: 3, carb_est_g: 8, fat_est_g: 7 },
@@ -171,24 +183,24 @@ function buildWorkout(dayOffset, user) {
   const pattern = (dayOffset + user.seed) % 4;
   if (pattern === 1) return null;
 
-  const strengthWeight = user.sender_id === 'mock_user_001' ? 85 : 45;
+  const strengthWeight = hasUserId(user, 'mock-user-momo') ? 85 : 45;
   const exercises = [
     {
       id: 'ex_001',
       time: formatTime(18, 30),
-      name: user.sender_id === 'mock_user_001' ? '深蹲' : '臀桥',
+      name: hasUserId(user, 'mock-user-momo') ? '深蹲' : '臀桥',
       category: 'strength',
       sets: [1, 2, 3, 4].map(setNo => ({ set_no: setNo, reps: 8 + (dayOffset % 3), weight_kg: strengthWeight + setNo * 2 })),
     },
     {
       id: 'ex_002',
       time: formatTime(19, 0),
-      name: user.sender_id === 'mock_user_001' ? '卧推' : '划船机',
-      category: user.sender_id === 'mock_user_001' ? 'strength' : 'cardio',
-      sets: user.sender_id === 'mock_user_001'
+      name: hasUserId(user, 'mock-user-momo') ? '卧推' : '划船机',
+      category: hasUserId(user, 'mock-user-momo') ? 'strength' : 'cardio',
+      sets: hasUserId(user, 'mock-user-momo')
         ? [1, 2, 3, 4].map(setNo => ({ set_no: setNo, reps: 6 + (dayOffset % 2), weight_kg: 62 + setNo * 2 }))
         : [],
-      duration_min: user.sender_id === 'mock_user_001' ? undefined : 32 + (dayOffset % 8),
+      duration_min: hasUserId(user, 'mock-user-momo') ? undefined : 32 + (dayOffset % 8),
     },
   ];
 
@@ -208,7 +220,10 @@ writeJson(path.join(outputRoot, 'invites.json'), { invites: [] });
 writeJson(path.join(outputRoot, 'sync_lock.json'), { pending: false });
 writeJson(path.join(outputRoot, 'users.json'), {
   users: users.map(user => ({
-    sender_id: user.sender_id,
+    user_id: user.user_id,
+    sender_id: user.identities[0].sender_id,
+    channel: user.identities[0].channel,
+    identities: user.identities,
     name: user.name,
     role: user.role,
     status: 'active',
@@ -220,14 +235,14 @@ writeJson(path.join(outputRoot, 'users.json'), {
 });
 
 for (const user of users) {
-  const userDir = path.join(outputRoot, user.sender_id);
+  const userDir = path.join(outputRoot, user.user_id);
   ensureDir(userDir);
   writeJson(path.join(userDir, 'profile.json'), user.profile);
 
   for (let offset = 29; offset >= 0; offset -= 1) {
     const dateObj = isoDaysAgo(offset);
     const date = formatDate(dateObj);
-    const wave = Math.sin((29 - offset) / 4) * (user.sender_id === 'mock_user_001' ? 0.25 : 0.18);
+    const wave = Math.sin((29 - offset) / 4) * (hasUserId(user, 'mock-user-momo') ? 0.25 : 0.18);
     const weight = round(user.baseWeight + user.trendPerDay * (29 - offset) + wave, 1);
     writeJson(buildDailyFilePath(userDir, 'weight', date), {
       date,
@@ -259,5 +274,5 @@ for (const user of users) {
 console.log(`mock health data written to ${outputRoot}`);
 console.log('users:');
 for (const user of users) {
-  console.log(`- ${user.name} (${user.sender_id}) token=${user.dashboard_token}`);
+  console.log(`- ${user.name} (${user.user_id}) token=${user.dashboard_token}`);
 }

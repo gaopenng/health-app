@@ -56,23 +56,35 @@ json_get() {
 
 HEALTH_DATA_DIR="$(json_get 'cfg.health_data_dir')"
 DASHBOARD_DATA_DIR="$(json_get 'cfg.dashboard_data_dir')"
+ADMIN_USER_ID="$(json_get 'cfg.admin && (cfg.admin.user_id || cfg.admin.sender_id)')"
 ADMIN_SENDER_ID="$(json_get 'cfg.admin && cfg.admin.sender_id')"
+ADMIN_CHANNEL="$(json_get 'cfg.admin && cfg.admin.channel')"
 ADMIN_NAME="$(json_get 'cfg.admin && cfg.admin.name')"
 
-if [ -z "$ADMIN_SENDER_ID" ] || [ -z "$ADMIN_NAME" ]; then
-  echo "❌ 请先在 config.local.json 中填写 admin.sender_id 和 admin.name"
+if [ -z "$ADMIN_USER_ID" ] || [ -z "$ADMIN_SENDER_ID" ] || [ -z "$ADMIN_NAME" ]; then
+  echo "❌ 请先在 config.local.json 中填写 admin.user_id、admin.sender_id 和 admin.name"
   exit 1
+fi
+
+if [ -z "$ADMIN_CHANNEL" ]; then
+  ADMIN_CHANNEL="unknown"
+fi
+
+if [ "$ADMIN_CHANNEL" = "unknown" ]; then
+  DAILY_REPORT_TARGET="dm:$ADMIN_SENDER_ID"
+else
+  DAILY_REPORT_TARGET="$ADMIN_CHANNEL:dm:$ADMIN_SENDER_ID"
 fi
 
 echo "📁 数据目录：$HEALTH_DATA_DIR"
 echo "📊 看板数据目录：$DASHBOARD_DATA_DIR"
-echo "👤 管理员：$ADMIN_NAME ($ADMIN_SENDER_ID)"
+echo "👤 管理员：$ADMIN_NAME (user_id=$ADMIN_USER_ID, $ADMIN_CHANNEL:$ADMIN_SENDER_ID)"
 
 mkdir -p "$HEALTH_DATA_DIR"
 mkdir -p "$DASHBOARD_DATA_DIR"
-mkdir -p "$HEALTH_DATA_DIR/$ADMIN_SENDER_ID/diet"
-mkdir -p "$HEALTH_DATA_DIR/$ADMIN_SENDER_ID/workout"
-mkdir -p "$HEALTH_DATA_DIR/$ADMIN_SENDER_ID/weight"
+mkdir -p "$HEALTH_DATA_DIR/$ADMIN_USER_ID/diet"
+mkdir -p "$HEALTH_DATA_DIR/$ADMIN_USER_ID/workout"
+mkdir -p "$HEALTH_DATA_DIR/$ADMIN_USER_ID/weight"
 
 USERS_FILE="$HEALTH_DATA_DIR/users.json"
 if [ ! -f "$USERS_FILE" ]; then
@@ -82,12 +94,20 @@ if [ ! -f "$USERS_FILE" ]; then
 {
   "users": [
     {
+      "user_id": "$ADMIN_USER_ID",
       "sender_id": "$ADMIN_SENDER_ID",
+      "channel": "$ADMIN_CHANNEL",
+      "identities": [
+        {
+          "channel": "$ADMIN_CHANNEL",
+          "sender_id": "$ADMIN_SENDER_ID"
+        }
+      ],
       "name": "$ADMIN_NAME",
       "role": "admin",
       "status": "active",
       "dashboard_token": "$DASHBOARD_TOKEN",
-      "daily_report_target": "dm:$ADMIN_SENDER_ID",
+      "daily_report_target": "$DAILY_REPORT_TARGET",
       "registered_at": "$TODAY",
       "last_active_at": "$TODAY"
     }
@@ -107,7 +127,7 @@ else
   echo "⏭️  invites.json 已存在，跳过"
 fi
 
-PROFILE_FILE="$HEALTH_DATA_DIR/$ADMIN_SENDER_ID/profile.json"
+PROFILE_FILE="$HEALTH_DATA_DIR/$ADMIN_USER_ID/profile.json"
 if [ ! -f "$PROFILE_FILE" ]; then
   cat > "$PROFILE_FILE" <<'EOF_PROFILE'
 {
@@ -133,6 +153,8 @@ cat > "$RUNTIME_CONFIG_FILE" <<EOF_RUNTIME
   "users_file": "$HEALTH_DATA_DIR/users.json",
   "invites_file": "$HEALTH_DATA_DIR/invites.json",
   "sync_lock_file": "$HEALTH_DATA_DIR/sync_lock.json",
+  "default_user_id": "$ADMIN_USER_ID",
+  "default_channel": "$ADMIN_CHANNEL",
   "default_sender_id": "$ADMIN_SENDER_ID",
   "default_sender_name": "$ADMIN_NAME"
 }

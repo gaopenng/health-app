@@ -90,11 +90,18 @@ cp config.local.example.json config.local.json
 ```json
 {
   "admin": {
+    "user_id": "你的内部用户 ID",
+    "channel": "telegram",
     "sender_id": "你的飞书或 Telegram 用户 ID",
     "name": "你的显示名"
   }
 }
 ```
+
+说明：
+- `admin.user_id` 是内部稳定用户 ID，同一个人跨 Telegram / 飞书应保持不变
+- `admin.channel + admin.sender_id` 表示管理员的首个渠道身份
+- 后续新增其他渠道身份时，应追加到 `users.json` 的 `identities[]`，而不是新建第二个用户目录
 
 只有在这台机器尚未配置飞书渠道时，才需要额外补 `feishu.app_id`、`feishu.app_secret` 等字段。
 
@@ -150,9 +157,47 @@ openclaw agents bindings
 |------|--------|------|
 | `health_data_dir` | `~/.health` | 用户原始数据目录（不进 git） |
 | `dashboard_data_dir` | `./dashboard/data` | 看板聚合数据目录 |
+| `admin.user_id` | 空（必填） | 内部稳定用户 ID，同一真人跨渠道保持一致 |
+| `admin.channel` | 空（建议填） | 管理员当前主渠道，如 `telegram` / `feishu` |
 | `admin.sender_id` | 空（必填） | 管理员的渠道用户 ID |
 | `admin.name` | 空（必填） | 管理员显示名 |
 | `feishu.*` | 空（可选） | 仅在当前机器尚未配置飞书渠道时填写 |
+
+## 用户模型
+
+`health-app` 现在区分两层身份：
+
+- `user_id`：内部唯一用户 ID，也是数据目录名
+- `identities[]`：渠道身份映射，例如 `telegram:8029666915`、`feishu:ou_xxx`
+
+示例：
+
+```json
+{
+  "user_id": "akihi",
+  "name": "Akihi",
+  "identities": [
+    { "channel": "telegram", "sender_id": "8029666915" },
+    { "channel": "feishu", "sender_id": "ou_7c9ad28215c2e53956ba5c0ac5432926" }
+  ]
+}
+```
+
+含义是：
+- 不同渠道来的消息先匹配 `identities[]`
+- 命中后统一写入 `~/.health/{user_id}/`
+- 同一个人不再因为换渠道而分裂成多份数据
+
+如果你要把新渠道身份手动绑定到已有用户，可以运行：
+
+```bash
+node scripts/link-user-identity.js \
+  --user-id akihi \
+  --channel telegram \
+  --sender-id 8029666915
+```
+
+这条命令只会更新 `users.json` 的身份映射，不会自动迁移旧目录里的历史文件。
 
 ## OpenClaw 排障
 
@@ -176,10 +221,10 @@ http://127.0.0.1:4180/admin/
 
 这个后台页会实时读取：
 - `~/.health/users.json`
-- `~/.health/{sender_id}/profile.json`
-- `~/.health/{sender_id}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
-- `~/.health/{sender_id}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
-- `~/.health/{sender_id}/workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+- `~/.health/{user_id}/profile.json`
+- `~/.health/{user_id}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+- `~/.health/{user_id}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+- `~/.health/{user_id}/workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
 
 适合排查“消息已经记录，但用户看板还没刷新”这类问题。
 

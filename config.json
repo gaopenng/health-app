@@ -2,6 +2,8 @@
   "health_data_dir": "~/.health",
   "dashboard_data_dir": "./dashboard/data",
   "admin": {
+    "user_id": "",
+    "channel": "",
     "sender_id": "",
     "name": ""
   },

@@ -4,7 +4,16 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { URL } = require('url');
-const { readDailyRecords, readJson, sortByDateTime } = require('./health-data-utils');
+const {
+  getPrimaryIdentity,
+  getUserDataDir,
+  getUserId,
+  readDailyRecords,
+  readJson,
+  readUsers,
+  resolveUser,
+  sortByDateTime,
+} = require('./health-data-utils');
 
 const repoRoot = path.resolve(__dirname, '..');
 const dashboardRoot = path.join(repoRoot, 'dashboard');
@@ -79,26 +88,30 @@ function sortByDateTimeDesc(a, b) {
 }
 
 function getUsers() {
-  const usersData = readJson(path.join(healthRoot, 'users.json'), { users: [] });
-  const users = Array.isArray(usersData?.users) ? usersData.users : [];
-  return users
+  return readUsers(healthRoot)
     .filter(user => user.status === 'active')
-    .map(user => ({
-      sender_id: user.sender_id,
-      name: user.name,
-      role: user.role,
-      dashboard_token: user.dashboard_token,
-      last_active_at: user.last_active_at,
-      daily_report_target: user.daily_report_target,
-    }));
+    .map(user => {
+      const primaryIdentity = getPrimaryIdentity(user);
+      return {
+        user_id: getUserId(user),
+        sender_id: primaryIdentity?.sender_id || user.sender_id,
+        channel: primaryIdentity?.channel || user.channel,
+        identities: user.identities,
+        name: user.name,
+        role: user.role,
+        dashboard_token: user.dashboard_token,
+        last_active_at: user.last_active_at,
+        daily_report_target: user.daily_report_target,
+      };
+    });
 }
 
-function buildRawPayload(senderId, days) {
+function buildRawPayload({ userId = '', senderId = '', channel = '' }, days) {
   const users = getUsers();
-  const user = users.find(item => item.sender_id === senderId);
+  const user = resolveUser(users, { userId, senderId, channel });
   if (!user) return null;
 
-  const userDir = path.join(healthRoot, senderId);
+  const userDir = getUserDataDir(healthRoot, user);
   const profile = readJson(path.join(userDir, 'profile.json'), {});
   const minDate = cutoffDate(days);
   const weights = readDailyRecords(userDir, 'weight', minDate);
@@ -137,13 +150,15 @@ function handleApi(req, res, url) {
   }
 
   if (url.pathname === '/api/admin/raw') {
+    const userId = url.searchParams.get('user_id');
     const senderId = url.searchParams.get('sender_id');
+    const channel = url.searchParams.get('channel');
     const days = Number.parseInt(url.searchParams.get('days') || '30', 10);
-    if (!senderId) {
-      sendJson(res, 400, { error: 'sender_id is required' });
+    if (!userId && !senderId) {
+      sendJson(res, 400, { error: 'user_id or sender_id is required' });
       return true;
     }
-    const payload = buildRawPayload(senderId, days);
+    const payload = buildRawPayload({ userId, senderId, channel }, days);
     if (!payload) {
       sendJson(res, 404, { error: 'user not found' });
       return true;

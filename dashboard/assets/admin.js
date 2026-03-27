@@ -1,5 +1,5 @@
 let USERS = [];
-let CURRENT_SENDER_ID = null;
+let CURRENT_USER_ID = null;
 let CURRENT_DAYS = 30;
 let RAW_DATA = null;
 let charts = {};
@@ -17,7 +17,7 @@ function bindControls() {
   });
 
   document.getElementById('user-select').addEventListener('change', async event => {
-    CURRENT_SENDER_ID = event.target.value;
+    CURRENT_USER_ID = event.target.value;
     syncUrl();
     await refreshCurrentUser();
   });
@@ -39,7 +39,7 @@ async function loadUsers() {
 
     const params = new URLSearchParams(location.search);
     CURRENT_DAYS = parseInt(params.get('days') || '30', 10);
-    CURRENT_SENDER_ID = params.get('sender_id') || USERS[0].sender_id;
+    CURRENT_USER_ID = params.get('user_id') || params.get('sender_id') || getUserKey(USERS[0]);
 
     document.getElementById('days-select').value = String(CURRENT_DAYS);
     renderUserOptions();
@@ -57,7 +57,7 @@ async function refreshCurrentUser(manual = false) {
   updateTimestamp(manual ? '正在读取原始文件' : '正在加载');
 
   try {
-    const res = await fetch(`/api/admin/raw?sender_id=${encodeURIComponent(CURRENT_SENDER_ID)}&days=${CURRENT_DAYS}&t=${Date.now()}`, {
+    const res = await fetch(`/api/admin/raw?user_id=${encodeURIComponent(CURRENT_USER_ID)}&days=${CURRENT_DAYS}&t=${Date.now()}`, {
       cache: 'no-store',
     });
     if (!res.ok) throw new Error('fetch failed');
@@ -79,8 +79,9 @@ async function refreshCurrentUser(manual = false) {
 function renderUserOptions() {
   const select = document.getElementById('user-select');
   select.innerHTML = USERS.map(user => {
-    const selected = user.sender_id === CURRENT_SENDER_ID ? ' selected' : '';
-    return `<option value="${escapeHtml(user.sender_id)}"${selected}>${escapeHtml(user.name || user.sender_id)}</option>`;
+    const userKey = getUserKey(user);
+    const selected = userKey === CURRENT_USER_ID ? ' selected' : '';
+    return `<option value="${escapeHtml(userKey)}"${selected}>${escapeHtml(user.name || userKey)}</option>`;
   }).join('');
 }
 
@@ -110,9 +111,14 @@ function renderCards() {
 function renderUserMeta() {
   const user = RAW_DATA.user || {};
   const profile = RAW_DATA.profile || {};
+  const identities = Array.isArray(user.identities) && user.identities.length
+    ? user.identities.map(identity => `${identity.channel || 'unknown'}:${identity.sender_id}`).join(' · ')
+    : '-';
   const items = [
     ['用户名称', user.name || '-'],
-    ['sender_id', user.sender_id || '-'],
+    ['user_id', user.user_id || user.sender_id || '-'],
+    ['主身份', user.sender_id ? `${user.channel || 'unknown'}:${user.sender_id}` : '-'],
+    ['全部身份', identities],
     ['角色', user.role || '-'],
     ['日报目标', user.daily_report_target || '-'],
     ['热量目标', `${profile.daily_calorie_target || 2000} kcal`],
@@ -365,9 +371,13 @@ function updateTimestamp(extraText = '') {
 
 function syncUrl() {
   const params = new URLSearchParams();
-  if (CURRENT_SENDER_ID) params.set('sender_id', CURRENT_SENDER_ID);
+  if (CURRENT_USER_ID) params.set('user_id', CURRENT_USER_ID);
   if (CURRENT_DAYS) params.set('days', String(CURRENT_DAYS));
   history.replaceState({}, '', `${location.pathname}?${params.toString()}`);
+}
+
+function getUserKey(user) {
+  return user.user_id || user.sender_id || '';
 }
 
 function showDashboard() {

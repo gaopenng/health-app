@@ -10,14 +10,15 @@ Cron prompt：
 ```
 执行每周周报推送任务。读取 {health_data_dir}/users.json，
 对所有 status=active 的用户，调用 weekly-review skill，
-传入各自的 sender_id，逐一生成并推送周报。
+传入各自的 user_id 与 data_dir，逐一生成并推送周报。
 ```
 
 ## 输入参数
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
-| `user_sender_id` | ✅ | 用户 ID |
+| `user_sender_id` | ✅ | 当前主推送身份的渠道 ID |
+| `user_id` | ✅ | 内部稳定用户 ID |
 | `data_dir` | ✅ | 用户数据目录 |
 
 ## 执行流程

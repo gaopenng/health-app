@@ -10,14 +10,15 @@ Cron prompt：
 ```
 执行每日日报推送任务。读取 {health_data_dir}/users.json，
 对所有 status=active 的用户，调用 daily-report skill，
-传入各自的 sender_id，逐一生成并推送日报。
+传入各自的 user_id 与 data_dir，逐一生成并推送日报。
 ```
 
 ## 输入参数
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
-| `user_sender_id` | ✅ | 用户 ID |
+| `user_sender_id` | ✅ | 当前主推送身份的渠道 ID |
+| `user_id` | ✅ | 内部稳定用户 ID |
 | `data_dir` | ✅ | 用户数据目录 |
 
 ## 执行流程
@@ -34,8 +35,9 @@ Cron prompt：
 6. 组装日报消息（格式见下）
 
 7. 读取 {health_data_dir}/users.json 中该用户的 daily_report_target 字段：
-   - "group:{群组ID}" → 推送到群组
-   - "dm:{sender_id}" → 推送到私聊
+   - "{channel}:group:{群组ID}" → 推送到群组
+   - "{channel}:dm:{sender_id}" → 推送到私聊
+   - 旧格式 "group:{群组ID}" / "dm:{sender_id}" 仍需兼容
 
 8. 附上专属 Dashboard 链接（从 users.json 读取 dashboard_token）
 ```

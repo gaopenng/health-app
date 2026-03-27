@@ -6,8 +6,10 @@
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
-| `user_sender_id` | ✅ | 用户 ID |
-| `data_dir` | ✅ | 用户数据目录，如 `~/.health/{sender_id}/` |
+| `user_sender_id` | ✅ | 当前渠道中的用户 ID |
+| `user_id` | ✅ | 内部稳定用户 ID |
+| `user_channel` | ✅ | 当前渠道，如 `telegram` / `feishu` |
+| `data_dir` | ✅ | 用户数据目录，如 `~/.health/{user_id}/` |
 | `input_type` | ✅ | `text` 或 `image` |
 | `content` | ✅ | 文字描述或图片数据 |
 | `reply_target` | ✅ | 回复目标（群组 ID 或私聊 ID） |

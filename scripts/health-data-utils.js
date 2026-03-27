@@ -32,6 +32,83 @@ function listJsonFilesRecursive(dirPath) {
   return out.sort();
 }
 
+function normalizeChannel(value) {
+  if (!value) return 'unknown';
+  return String(value).trim().toLowerCase() || 'unknown';
+}
+
+function getUserId(user) {
+  return user?.user_id || user?.sender_id || '';
+}
+
+function getUserIdentities(user) {
+  const identities = Array.isArray(user?.identities)
+    ? user.identities
+        .filter(identity => identity && identity.sender_id)
+        .map(identity => ({
+          channel: normalizeChannel(identity.channel),
+          sender_id: String(identity.sender_id),
+        }))
+    : [];
+
+  if (identities.length) return identities;
+  if (!user?.sender_id) return [];
+
+  return [{
+    channel: normalizeChannel(user.channel),
+    sender_id: String(user.sender_id),
+  }];
+}
+
+function getPrimaryIdentity(user) {
+  return getUserIdentities(user)[0] || null;
+}
+
+function normalizeUserRecord(user) {
+  const userId = getUserId(user);
+  const identities = getUserIdentities(user);
+  const primaryIdentity = identities[0] || null;
+  return {
+    ...user,
+    user_id: userId,
+    sender_id: user?.sender_id || primaryIdentity?.sender_id || '',
+    channel: normalizeChannel(user?.channel || primaryIdentity?.channel),
+    identities,
+  };
+}
+
+function readUsers(healthRoot) {
+  const usersData = readJson(path.join(healthRoot, 'users.json'), { users: [] });
+  const users = Array.isArray(usersData?.users) ? usersData.users : [];
+  return users.map(normalizeUserRecord);
+}
+
+function getUserDataDir(healthRoot, user) {
+  return path.join(healthRoot, getUserId(user));
+}
+
+function identityMatches(identity, senderId, channel) {
+  if (!identity || !senderId) return false;
+  if (String(identity.sender_id) !== String(senderId)) return false;
+  if (!channel) return true;
+
+  const expectedChannel = normalizeChannel(channel);
+  const actualChannel = normalizeChannel(identity.channel);
+  return actualChannel === 'unknown' || actualChannel === expectedChannel;
+}
+
+function resolveUser(users, { userId = '', senderId = '', channel = '' } = {}) {
+  if (userId) {
+    return users.find(user => getUserId(user) === String(userId)) || null;
+  }
+
+  if (!senderId) return null;
+
+  return users.find(user =>
+    getUserIdentities(user).some(identity => identityMatches(identity, senderId, channel))
+  ) || null;
+}
+
 function sortByDateTime(a, b) {
   const left = `${a.date || ''}T${a.time || '00:00'}`;
   const right = `${b.date || ''}T${b.time || '00:00'}`;
@@ -61,8 +138,16 @@ function buildDailyFilePath(baseDir, category, date) {
 
 module.exports = {
   buildDailyFilePath,
+  getPrimaryIdentity,
+  getUserDataDir,
+  getUserId,
+  getUserIdentities,
+  normalizeChannel,
+  normalizeUserRecord,
   listJsonFilesRecursive,
   readDailyRecords,
   readJson,
+  readUsers,
+  resolveUser,
   sortByDateTime,
 };
