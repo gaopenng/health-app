@@ -43,7 +43,22 @@ health-app/
 
 ### 1. fork 并绑定 Cloudflare Pages
 
-fork 本仓库到自己的 GitHub，在 Cloudflare Pages 绑定 fork 后的仓库，**Root directory 设为 `dashboard/`**。
+fork 本仓库到自己的 GitHub，在 Cloudflare Pages 绑定 fork 后的仓库。
+
+推荐配置：
+
+| 配置项 | 值 |
+|------|------|
+| Framework preset | `None` |
+| Production branch | `main` |
+| Build command | 留空 |
+| Build output directory | `dashboard` |
+| Root directory | 留空 |
+
+说明：
+- `dashboard/` 目录本身就是可直接发布的静态站输出目录
+- `/admin` 是本地调试入口，生产 Pages 站点会通过 `_redirects` 自动回到首页
+- `dashboard/_headers` 已内置 Pages 响应头规则，`dashboard/_redirects` 已内置 `/admin` 路由处理
 
 ### 2. 填写本地配置
 
