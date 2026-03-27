@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
+const { buildDailyFilePath } = require('./health-data-utils');
 
 const repoRoot = path.resolve(__dirname, '..');
 const outputRoot = path.resolve(process.argv[2] || path.join(repoRoot, 'mock-data', 'health'));
@@ -201,6 +202,8 @@ function buildWorkout(dayOffset, user) {
 }
 
 ensureDir(outputRoot);
+fs.rmSync(outputRoot, { recursive: true, force: true });
+ensureDir(outputRoot);
 writeJson(path.join(outputRoot, 'invites.json'), { invites: [] });
 writeJson(path.join(outputRoot, 'sync_lock.json'), { pending: false });
 writeJson(path.join(outputRoot, 'users.json'), {
@@ -226,7 +229,7 @@ for (const user of users) {
     const date = formatDate(dateObj);
     const wave = Math.sin((29 - offset) / 4) * (user.sender_id === 'mock_user_001' ? 0.25 : 0.18);
     const weight = round(user.baseWeight + user.trendPerDay * (29 - offset) + wave, 1);
-    writeJson(path.join(userDir, 'weight', `${date}.json`), {
+    writeJson(buildDailyFilePath(userDir, 'weight', date), {
       date,
       time: formatTime(7, 15 + (offset % 20)),
       weight_kg: weight,
@@ -234,7 +237,7 @@ for (const user of users) {
     });
 
     const diet = buildMeals(offset, user);
-    writeJson(path.join(userDir, 'diet', `${date}.json`), {
+    writeJson(buildDailyFilePath(userDir, 'diet', date), {
       date,
       meals: diet.meals,
       total_calories: diet.total_calories,
@@ -245,7 +248,7 @@ for (const user of users) {
 
     const workout = buildWorkout(offset, user);
     if (workout) {
-      writeJson(path.join(userDir, 'workout', `${date}.json`), {
+      writeJson(buildDailyFilePath(userDir, 'workout', date), {
         date,
         exercises: workout.exercises,
       });

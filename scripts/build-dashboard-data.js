@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { readDailyRecords, readJson, sortByDateTime } = require('./health-data-utils');
 
 const repoRoot = path.resolve(__dirname, '..');
 const defaultHealthDir = path.join(os.homedir(), '.health');
@@ -18,24 +19,8 @@ function hasArg(name) {
   return args.includes(name);
 }
 
-function readJson(filePath, fallback = null) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch {
-    return fallback;
-  }
-}
-
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
-}
-
-function listJsonFiles(dirPath) {
-  if (!fs.existsSync(dirPath)) return [];
-  return fs.readdirSync(dirPath)
-    .filter(name => name.endsWith('.json'))
-    .map(name => path.join(dirPath, name))
-    .sort();
 }
 
 function pad(n) {
@@ -59,39 +44,22 @@ function lastNDates(days) {
   return out;
 }
 
-function sortByDateTime(a, b) {
-  const left = `${a.date || ''}T${a.time || '00:00'}`;
-  const right = `${b.date || ''}T${b.time || '00:00'}`;
-  return left.localeCompare(right);
-}
-
 function readWeightHistory(userDir, cutoffDate) {
-  const files = listJsonFiles(path.join(userDir, 'weight'));
-  return files
-    .map(file => readJson(file))
-    .filter(Boolean)
-    .filter(entry => entry.date && entry.date >= cutoffDate)
-    .sort(sortByDateTime)
+  return readDailyRecords(userDir, 'weight', cutoffDate)
     .map(entry => ({ date: entry.date, weight_kg: entry.weight_kg }));
 }
 
 function readDietMap(userDir) {
-  const files = listJsonFiles(path.join(userDir, 'diet'));
   const map = new Map();
-  for (const file of files) {
-    const entry = readJson(file);
-    if (!entry || !entry.date) continue;
+  for (const entry of readDailyRecords(userDir, 'diet')) {
     map.set(entry.date, entry);
   }
   return map;
 }
 
 function readWorkoutMap(userDir) {
-  const files = listJsonFiles(path.join(userDir, 'workout'));
   const map = new Map();
-  for (const file of files) {
-    const entry = readJson(file);
-    if (!entry || !entry.date) continue;
+  for (const entry of readDailyRecords(userDir, 'workout')) {
     map.set(entry.date, entry);
   }
   return map;

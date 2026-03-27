@@ -23,9 +23,9 @@ Cron prompt：
 ## 执行流程
 
 ```
-1. 读取 {data_dir}/diet/YYYY-MM-DD.json → 饮食摘要
-2. 读取 {data_dir}/workout/YYYY-MM-DD.json → 训练摘要（文件不存在则标记"今日未训练"）
-3. 遍历最近 7 天读取最近一次 weight/YYYY-MM-DD.json → 体重
+1. 读取 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` → 饮食摘要
+2. 读取 `{data_dir}/workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` → 训练摘要（文件不存在则标记"今日未训练"）
+3. 遍历最近 7 天读取最近一次 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` → 体重
 4. 读取 {data_dir}/profile.json → 获取目标值
 
 5. 用 LLM 基于当日数据生成 1 条具体个性化建议

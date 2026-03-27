@@ -25,7 +25,7 @@
 
 2. 计算总容量：total_volume_kg = sets × reps × weight_kg
 
-3. 读取 {data_dir}/workout/YYYY-MM-DD.json（不存在则创建）
+3. 读取 `{data_dir}/workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`（不存在则创建）
 4. 追加本次动作记录
 5. 写回文件
 
@@ -57,7 +57,7 @@
 
 ## 数据文件格式
 
-写入 `{data_dir}/workout/YYYY-MM-DD.json`：
+写入 `{data_dir}/workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`：
 
 ```json
 {

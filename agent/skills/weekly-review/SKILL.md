@@ -24,9 +24,9 @@ Cron prompt：
 
 ```
 1. 读取本周（周一至周日）7 天的数据：
-   - diet/YYYY-MM-DD.json × 7 → 每日热量、宏量
-   - workout/YYYY-MM-DD.json × 7 → 训练天数、训练量
-   - weight/YYYY-MM-DD.json（取本周最新一次）
+   - `diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` × 7 → 每日热量、宏量
+   - `workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` × 7 → 训练天数、训练量
+   - `weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`（取本周最新一次）
 
 2. 计算周汇总指标：
    - 本周总热量 / 日均热量

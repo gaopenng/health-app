@@ -35,7 +35,7 @@
      17:00–20:00 → dinner
      其他 → snack
 
-4. 读取 {data_dir}/diet/YYYY-MM-DD.json（不存在则创建空文件）
+4. 读取 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`（不存在则创建空文件）
 5. 追加本餐记录，更新 total_calories / total_protein_g / total_carb_g / total_fat_g 汇总字段
 6. 写回文件
 
@@ -54,7 +54,7 @@
 ## 图片输入特殊要求
 
 - 对餐食图片，默认行为是“记录饮食”而不是“点评这顿饭”
-- 识别完成后必须先写入 `{data_dir}/diet/YYYY-MM-DD.json`，再组织回复
+- 识别完成后必须先写入 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`，再组织回复
 - 回复第一句必须是确认句，例如：`✅ 午餐已记录（图片识别）`
 - 回复中必须包含：菜品估算、`本餐合计`、`今日累计`
 - 可选建议最多 2 句，放在最后，且不能喧宾夺主
@@ -86,7 +86,7 @@
 
 ## 数据文件格式
 
-写入 `{data_dir}/diet/YYYY-MM-DD.json`：
+写入 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`：
 
 ```json
 {

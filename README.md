@@ -137,9 +137,9 @@ http://127.0.0.1:4180/admin/
 这个后台页会实时读取：
 - `~/.health/users.json`
 - `~/.health/{sender_id}/profile.json`
-- `~/.health/{sender_id}/diet/*.json`
-- `~/.health/{sender_id}/weight/*.json`
-- `~/.health/{sender_id}/workout/*.json`
+- `~/.health/{sender_id}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+- `~/.health/{sender_id}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+- `~/.health/{sender_id}/workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
 
 适合排查“消息已经记录，但用户看板还没刷新”这类问题。
 
@@ -162,6 +162,7 @@ node scripts/generate-mock-health-data.js
 - 每人 30 天体重记录
 - 每人 30 天饮食记录
 - 每人约 3 周训练记录
+- 文件按 `类型 / 年 / 月 / 日文件` 组织
 
 如果要让后台页直接读取这批 mock 数据，而不是读取真实 `~/.health`，可以这样启动：
 

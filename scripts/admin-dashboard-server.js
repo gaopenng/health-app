@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { URL } = require('url');
+const { readDailyRecords, readJson, sortByDateTime } = require('./health-data-utils');
 
 const repoRoot = path.resolve(__dirname, '..');
 const dashboardRoot = path.join(repoRoot, 'dashboard');
@@ -21,14 +22,6 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
 };
-
-function readJson(filePath, fallback = null) {
-  try {
-    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  } catch {
-    return fallback;
-  }
-}
 
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, {
@@ -74,14 +67,6 @@ function serveStatic(res, targetPath) {
   }
 }
 
-function listJsonFiles(dirPath) {
-  if (!fs.existsSync(dirPath)) return [];
-  return fs.readdirSync(dirPath)
-    .filter(name => name.endsWith('.json'))
-    .map(name => path.join(dirPath, name))
-    .sort();
-}
-
 function cutoffDate(days) {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
@@ -89,26 +74,8 @@ function cutoffDate(days) {
   return d.toISOString().slice(0, 10);
 }
 
-function sortByDateTimeAsc(a, b) {
-  const left = `${a.date || ''}T${a.time || '00:00'}`;
-  const right = `${b.date || ''}T${b.time || '00:00'}`;
-  return left.localeCompare(right);
-}
-
 function sortByDateTimeDesc(a, b) {
-  return sortByDateTimeAsc(b, a);
-}
-
-function readRecordFiles(baseDir, subdir, days) {
-  const minDate = cutoffDate(days);
-  return listJsonFiles(path.join(baseDir, subdir))
-    .map(filePath => ({
-      file: path.basename(filePath),
-      path: filePath,
-      raw: readJson(filePath),
-    }))
-    .filter(entry => entry.raw && entry.raw.date)
-    .filter(entry => entry.raw.date >= minDate);
+  return sortByDateTime(b, a);
 }
 
 function getUsers() {
@@ -133,15 +100,10 @@ function buildRawPayload(senderId, days) {
 
   const userDir = path.join(healthRoot, senderId);
   const profile = readJson(path.join(userDir, 'profile.json'), {});
-  const weights = readRecordFiles(userDir, 'weight', days)
-    .map(entry => ({ file: entry.file, ...entry.raw }))
-    .sort(sortByDateTimeAsc);
-  const diets = readRecordFiles(userDir, 'diet', days)
-    .map(entry => ({ file: entry.file, ...entry.raw }))
-    .sort(sortByDateTimeDesc);
-  const workouts = readRecordFiles(userDir, 'workout', days)
-    .map(entry => ({ file: entry.file, ...entry.raw }))
-    .sort(sortByDateTimeDesc);
+  const minDate = cutoffDate(days);
+  const weights = readDailyRecords(userDir, 'weight', minDate);
+  const diets = [...readDailyRecords(userDir, 'diet', minDate)].sort(sortByDateTimeDesc);
+  const workouts = [...readDailyRecords(userDir, 'workout', minDate)].sort(sortByDateTimeDesc);
 
   const latestWeight = weights.length ? weights[weights.length - 1] : null;
   const today = new Date().toISOString().slice(0, 10);

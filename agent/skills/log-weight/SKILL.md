@@ -21,9 +21,9 @@
    - kg：直接使用
 
 2. 读取最近一次体重记录：
-   从今天往前遍历最近 7 天的 {data_dir}/weight/YYYY-MM-DD.json，取第一个存在的文件
+   从今天往前遍历最近 7 天的 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`，取第一个存在的文件
 
-3. 写入今日体重文件 {data_dir}/weight/YYYY-MM-DD.json
+3. 写入今日体重文件 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
 
 4. 异步调用 sync-dashboard skill（非阻塞）
 
@@ -45,7 +45,7 @@
 
 ## 数据文件格式
 
-写入 `{data_dir}/weight/YYYY-MM-DD.json`：
+写入 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`：
 
 ```json
 {

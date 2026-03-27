@@ -93,3 +93,4 @@
 - 用户数据目录：`{health_data_dir}/{sender_id}`
 - 聚合数据目录：`{dashboard_data_dir}`
 - 当日日期格式：`YYYY-MM-DD`（本地时区）
+- 原始记录目录格式：`{type}/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
