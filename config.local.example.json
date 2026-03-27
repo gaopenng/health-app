@@ -1,4 +1,5 @@
 {
+  "dashboard_public_base_url": "https://health-app.example.workers.dev",
   "admin": {
     "user_id": "",
     "channel": "telegram",

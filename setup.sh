@@ -56,6 +56,7 @@ json_get() {
 
 HEALTH_DATA_DIR="$(json_get 'cfg.health_data_dir')"
 DASHBOARD_DATA_DIR="$(json_get 'cfg.dashboard_data_dir')"
+DASHBOARD_PUBLIC_BASE_URL="$(json_get 'cfg.dashboard_public_base_url')"
 ADMIN_USER_ID="$(json_get 'cfg.admin && cfg.admin.user_id')"
 ADMIN_SENDER_ID="$(json_get 'cfg.admin && cfg.admin.sender_id')"
 ADMIN_CHANNEL="$(json_get 'cfg.admin && cfg.admin.channel')"
@@ -87,6 +88,7 @@ fi
 
 echo "📁 数据目录：$HEALTH_DATA_DIR"
 echo "📊 看板数据目录：$DASHBOARD_DATA_DIR"
+echo "🌍 线上看板：${DASHBOARD_PUBLIC_BASE_URL:-未配置}"
 echo "👤 管理员：$ADMIN_NAME (@$ADMIN_USERNAME, user_id=$ADMIN_USER_ID, $ADMIN_CHANNEL:$ADMIN_SENDER_ID)"
 
 mkdir -p "$HEALTH_DATA_DIR"
@@ -160,6 +162,7 @@ cat > "$RUNTIME_CONFIG_FILE" <<EOF_RUNTIME
 {
   "health_data_dir": "$HEALTH_DATA_DIR",
   "dashboard_data_dir": "$DASHBOARD_DATA_DIR",
+  "dashboard_public_base_url": "$DASHBOARD_PUBLIC_BASE_URL",
   "users_file": "$HEALTH_DATA_DIR/users.json",
   "invites_file": "$HEALTH_DATA_DIR/invites.json",
   "sync_lock_file": "$HEALTH_DATA_DIR/sync_lock.json",

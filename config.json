@@ -1,6 +1,7 @@
 {
   "health_data_dir": "~/.health",
   "dashboard_data_dir": "./dashboard/data",
+  "dashboard_public_base_url": "",
   "admin": {
     "user_id": "",
     "channel": "",

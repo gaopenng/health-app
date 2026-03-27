@@ -89,6 +89,7 @@ cp config.local.example.json config.local.json
 
 ```json
 {
+  "dashboard_public_base_url": "https://health-app.example.workers.dev",
   "admin": {
     "user_id": "",
     "channel": "telegram",
@@ -159,6 +160,7 @@ openclaw agents bindings
 |------|--------|------|
 | `health_data_dir` | `~/.health` | 用户原始数据目录（不进 git） |
 | `dashboard_data_dir` | `./dashboard/data` | 看板聚合数据目录 |
+| `dashboard_public_base_url` | 空（建议填） | 线上看板域名，供机器人在渠道内直接返回专属链接 |
 | `admin.user_id` | 空（可选） | 内部稳定用户 ID；为空时初始化脚本自动生成 UUID v4 |
 | `admin.channel` | 空（建议填） | 管理员当前主渠道，如 `telegram` / `feishu` |
 | `admin.username` | 空（必填） | 用户自己定义的稳定用户名 |
@@ -218,6 +220,22 @@ node scripts/migrate-user-to-uuid.js \
 - 去重 `identities[]`
 - 重命名用户数据目录
 - 备份原始 `users.json`
+
+## 渠道内返回看板
+
+如果你已经配置了 `dashboard_public_base_url`，用户在 Telegram / 飞书里发送：
+
+- `看板`
+- `查看数据看板`
+- `我的数据`
+
+`health-agent` 应直接返回：
+
+```text
+https://your-domain/?token=<dashboard_token>
+```
+
+其中 `<dashboard_token>` 从 `users.json` 读取，域名来自 `dashboard_public_base_url`。
 
 ## OpenClaw 排障
 

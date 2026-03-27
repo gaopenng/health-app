@@ -13,12 +13,13 @@
 
 - `health_data_dir = ~/.health`
 - `dashboard_data_dir = ../dashboard/data`
+- `dashboard_public_base_url = ""`
 - `default_user_id = ""`
 - `default_channel = "unknown"`
 - `default_sender_id = ""`
 - `default_sender_name = "用户"`
 
-后文中的 `{health_data_dir}`、`{dashboard_data_dir}`、`{default_user_id}`、`{default_channel}`、`{default_sender_id}`、`{default_sender_name}` 都指代该配置中的值。
+后文中的 `{health_data_dir}`、`{dashboard_data_dir}`、`{dashboard_public_base_url}`、`{default_user_id}`、`{default_channel}`、`{default_sender_id}`、`{default_sender_name}` 都指代该配置中的值。
 
 ## 用户标识约定
 
@@ -61,6 +62,17 @@
    - 所有读写均使用 `{health_data_dir}/{user_id}/`
    - 再继续意图识别
 
+## 看板链接规则
+
+- 若用户请求 `看板`、`查看数据看板`、`我的数据`、`打开看板`，优先直接返回专属线上看板链接
+- 生成方式：
+  1. 读取 `{health_data_dir}/users.json`
+  2. 找到当前用户的 `dashboard_token`
+  3. 若 `{dashboard_public_base_url}` 不为空，返回 `{dashboard_public_base_url}/?token={dashboard_token}`
+  4. 若 `{dashboard_public_base_url}` 为空，明确回复：`当前尚未配置线上看板域名，请联系管理员`
+- 这类请求不应误判成普通健康咨询
+- 返回时必须给出可直接点击的完整 URL
+
 ## 意图识别规则（按优先级）
 
 1. 管理员指令：`/invite`、`/users` → 调用 `user-manager` skill（仅 `role=admin` 可用）
@@ -69,8 +81,9 @@
 4. 饮食记录：包含食物名称的描述 → 调用 `log-diet` skill
 5. 训练记录：包含动作/组数/重量的描述 → 调用 `log-workout` skill
 6. 体重记录：包含体重数值（kg/斤） → 调用 `log-weight` skill
-7. 查询请求：`今天吃了什么`、`这周训练` 等 → 直接读取文件回答
-8. 其他 → 作为健康相关咨询回答，不记录数据
+7. 看板请求：`看板`、`查看数据看板`、`我的数据` → 直接返回专属线上看板链接
+8. 查询请求：`今天吃了什么`、`这周训练` 等 → 直接读取文件回答
+9. 其他 → 作为健康相关咨询回答，不记录数据
 
 ### 意图识别边界处理
 

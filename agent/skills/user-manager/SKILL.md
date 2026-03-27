@@ -69,7 +69,7 @@
 🎉 注册成功！欢迎使用健康管理助手
 ─────────────
 你的专属数据看板：
-https://health.pages.dev?token=xyz789
+{dashboard_public_base_url}/?token=xyz789
 请妥善保存此链接，这是你的专属入口
 
 发送"帮助"查看所有支持的指令
