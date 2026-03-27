@@ -21,6 +21,7 @@ health-app/
 ├── config.json                # 配置文件（含默认值）
 ├── config.local.example.json  # 本地配置模板（不进 git）
 ├── setup.sh                   # 初始化数据目录并生成运行时配置
+├── scripts/                   # 本地聚合与预览脚本
 ├── agent/
 │   ├── AGENTS.md              # Agent 系统提示词
 │   ├── settings.json          # OpenClaw bindings 示例配置
@@ -118,6 +119,30 @@ openclaw agents bindings
 | `admin.sender_id` | 空（必填） | 管理员的渠道用户 ID |
 | `admin.name` | 空（必填） | 管理员显示名 |
 | `feishu.*` | 空（可选） | 仅在当前机器尚未配置飞书渠道时填写 |
+
+## 本地看板预览
+
+如果你想先在本机查看后台看板，而不依赖 Cloudflare Pages，可以直接：
+
+```bash
+./scripts/preview-dashboard.sh
+```
+
+脚本会从 `~/.health/` 聚合活跃用户数据，写入 `dashboard/data/{dashboard_token}.json`。
+
+启动后，在浏览器打开：
+
+```
+http://127.0.0.1:4173/?token=<dashboard_token>
+```
+
+其中 `dashboard_token` 可在 `~/.health/users.json` 中查看。
+
+如果只想刷新数据、不启动本地服务：
+
+```bash
+node scripts/build-dashboard-data.js
+```
 
 ## 数据备份
 
