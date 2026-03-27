@@ -11,7 +11,7 @@ Dashboard 数据同步 Skill，将用户健康数据聚合为静态 JSON 并 git
 ## 执行流程
 
 ```
-1. 读取 /Users/gaopeng/.health/sync_lock.json，检查是否存在待执行的构建请求
+1. 读取 {health_data_dir}/sync_lock.json，检查是否存在待执行的构建请求
    结构：{"pending": true, "scheduled_at": "2026-03-24T12:30:00"}
 
 2. 若 pending=false 或文件不存在：
@@ -23,7 +23,7 @@ Dashboard 数据同步 Skill，将用户健康数据聚合为静态 JSON 并 git
    - 本次直接返回（5 分钟内已有人会触发构建）
 
 4. 构建执行：
-   a. 遍历 /Users/gaopeng/.health/users.json 中所有 status=active 的用户
+   a. 遍历 {health_data_dir}/users.json 中所有 status=active 的用户
    b. 为每个用户聚合数据，生成 {dashboard_data_dir}/{token}.json：
       - 最近 30 天体重数据
       - 最近 30 天每日热量 / 蛋白质 / 碳水 / 脂肪
