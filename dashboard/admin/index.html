@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>健康后台看板</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>加载后台数据…</p>
+  </div>
+
+  <div id="error" class="hidden">
+    <div class="error-box">
+      <span class="error-icon">⚠️</span>
+      <h2>后台数据读取失败</h2>
+      <p id="error-text">请确认本地 Node 服务已经启动。</p>
+    </div>
+  </div>
+
+  <div id="dashboard" class="hidden">
+    <header class="header admin-header">
+      <div class="header-inner">
+        <div class="header-title-block">
+          <h1>健康后台看板</h1>
+          <span id="updated-at" class="updated-at"></span>
+        </div>
+        <button id="refresh-btn" class="refresh-btn" type="button">刷新原始数据</button>
+      </div>
+      <div class="admin-toolbar">
+        <label class="admin-field">
+          <span>用户</span>
+          <select id="user-select" class="admin-select"></select>
+        </label>
+        <label class="admin-field">
+          <span>范围</span>
+          <select id="days-select" class="admin-select">
+            <option value="7">最近 7 天</option>
+            <option value="30" selected>最近 30 天</option>
+            <option value="90">最近 90 天</option>
+          </select>
+        </label>
+        <a id="user-dashboard-link" class="admin-link" href="#" target="_blank" rel="noreferrer">打开用户看板</a>
+      </div>
+    </header>
+
+    <main class="main admin-main">
+      <section class="cards admin-cards">
+        <div class="card">
+          <div class="card-label">最新体重</div>
+          <div class="card-value" id="card-latest-weight">—</div>
+          <div class="card-sub" id="card-latest-weight-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">今日热量</div>
+          <div class="card-value" id="card-today-calories">—</div>
+          <div class="card-sub" id="card-today-calories-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">今日蛋白质</div>
+          <div class="card-value" id="card-today-protein">—</div>
+          <div class="card-sub" id="card-today-protein-sub"></div>
+        </div>
+        <div class="card">
+          <div class="card-label">近 7 天训练</div>
+          <div class="card-value" id="card-workout-days">—</div>
+          <div class="card-sub" id="card-workout-days-sub"></div>
+        </div>
+      </section>
+
+      <section class="chart-card admin-meta-card">
+        <div class="chart-title">用户信息</div>
+        <div id="user-meta" class="admin-meta-grid"></div>
+      </section>
+
+      <section class="charts-grid admin-grid">
+        <div class="chart-card">
+          <div class="chart-title">体重原始记录</div>
+          <div id="weights-table" class="admin-table-wrap"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">饮食原始文件</div>
+          <div id="diet-list" class="admin-record-list"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">训练原始文件</div>
+          <div id="workout-list" class="admin-record-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/assets/admin.js"></script>
+</body>
+</html>

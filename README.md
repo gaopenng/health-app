@@ -120,6 +120,29 @@ openclaw agents bindings
 | `admin.name` | 空（必填） | 管理员显示名 |
 | `feishu.*` | 空（可选） | 仅在当前机器尚未配置飞书渠道时填写 |
 
+## 后台调试服务
+
+如果你要的是“后台调试页”，直接查看 `~/.health` 原始文件，而不是看聚合 JSON，可以启动本地 Node 服务：
+
+```bash
+node scripts/admin-dashboard-server.js
+```
+
+默认会监听：
+
+```
+http://127.0.0.1:4180/admin/
+```
+
+这个后台页会实时读取：
+- `~/.health/users.json`
+- `~/.health/{sender_id}/profile.json`
+- `~/.health/{sender_id}/diet/*.json`
+- `~/.health/{sender_id}/weight/*.json`
+- `~/.health/{sender_id}/workout/*.json`
+
+适合排查“消息已经记录，但用户看板还没刷新”这类问题。
+
 ## 本地看板预览
 
 如果你想先在本机查看后台看板，而不依赖 Cloudflare Pages，可以直接：
