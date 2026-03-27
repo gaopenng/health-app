@@ -154,6 +154,12 @@ openclaw agents bindings
 | `admin.name` | 空（必填） | 管理员显示名 |
 | `feishu.*` | 空（可选） | 仅在当前机器尚未配置飞书渠道时填写 |
 
+## OpenClaw 排障
+
+如果你在接入 OpenClaw、飞书、Telegram、双 bot 路由或 Cloudflare 部署时遇到问题，可以直接参考：
+
+- [openclaw/TROUBLESHOOTING.md](/Users/akihi/code/health-app/openclaw/TROUBLESHOOTING.md)
+
 ## 后台调试服务
 
 如果你要的是“后台调试页”，直接查看 `~/.health` 原始文件，而不是看聚合 JSON，可以启动本地 Node 服务：
