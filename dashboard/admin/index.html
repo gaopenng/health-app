@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>健康后台看板</title>
   <link rel="stylesheet" href="/assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div id="loading">
@@ -73,6 +74,41 @@
       <section class="chart-card admin-meta-card">
         <div class="chart-title">用户信息</div>
         <div id="user-meta" class="admin-meta-grid"></div>
+      </section>
+
+      <section class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">体重趋势</div>
+          <div class="chart-wrap">
+            <canvas id="chart-weight"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-title">每日热量</div>
+          <div class="chart-wrap">
+            <canvas id="chart-calories"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card chart-card--small">
+          <div class="chart-title">宏量营养素（均值）</div>
+          <div class="macro-wrap">
+            <div class="chart-wrap chart-wrap--donut">
+              <canvas id="chart-macro"></canvas>
+            </div>
+            <div class="macro-legend" id="macro-legend"></div>
+          </div>
+        </div>
+
+        <div class="chart-card chart-card--small">
+          <div class="chart-title">训练热力图</div>
+          <div id="heatmap" class="heatmap"></div>
+          <div class="heatmap-legend">
+            <span class="heatmap-cell heatmap-rest"></span> 休息
+            <span class="heatmap-cell heatmap-trained"></span> 训练
+          </div>
+        </div>
       </section>
 
       <section class="charts-grid admin-grid">

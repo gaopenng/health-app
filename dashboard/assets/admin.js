@@ -2,6 +2,7 @@ let USERS = [];
 let CURRENT_SENDER_ID = null;
 let CURRENT_DAYS = 30;
 let RAW_DATA = null;
+let charts = {};
 
 (async function init() {
   bindControls();
@@ -86,6 +87,7 @@ function renderUserOptions() {
 function renderAll() {
   renderCards();
   renderUserMeta();
+  renderCharts();
   renderWeights();
   renderRawList('diet-list', RAW_DATA.diets, '暂无饮食记录');
   renderRawList('workout-list', RAW_DATA.workouts, '暂无训练记录');
@@ -123,6 +125,165 @@ function renderUserMeta() {
       <div class="admin-meta-label">${escapeHtml(label)}</div>
       <div class="admin-meta-value">${escapeHtml(String(value))}</div>
     </div>
+  `).join('');
+}
+
+function renderCharts() {
+  const dailyStats = buildDailyStats(CURRENT_DAYS);
+  const weightData = (RAW_DATA.weights || []).map(row => ({ date: row.date, weight_kg: row.weight_kg }));
+  renderWeightChart(weightData);
+  renderCaloriesChart(dailyStats);
+  renderMacroDonut(dailyStats);
+  renderHeatmap(dailyStats);
+}
+
+function buildDailyStats(days) {
+  const dates = lastNDates(days);
+  const dietsByDate = new Map((RAW_DATA.diets || []).map(item => [item.date, item]));
+  const workoutsByDate = new Map((RAW_DATA.workouts || []).map(item => [item.date, item]));
+  return dates.map(date => {
+    const diet = dietsByDate.get(date);
+    const workout = workoutsByDate.get(date);
+    const exercises = Array.isArray(workout?.exercises) ? workout.exercises : [];
+    return {
+      date,
+      calories: diet?.total_calories || 0,
+      protein_g: diet?.total_protein_g || 0,
+      carb_g: diet?.total_carb_g || 0,
+      fat_g: diet?.total_fat_g || 0,
+      workout_count: exercises.length,
+      trained: exercises.length > 0,
+    };
+  });
+}
+
+function renderWeightChart(weightData) {
+  const labels = weightData.map(w => fmtDate(w.date));
+  const values = weightData.map(w => w.weight_kg);
+  rebuildChart('chart-weight', {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: '体重 (kg)',
+        data: values,
+        borderColor: '#5b8dee',
+        backgroundColor: 'rgba(91,141,238,.12)',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        tension: 0.35,
+        fill: true,
+      }],
+    },
+    options: commonLineOpts({ unit: ' kg' }),
+  });
+}
+
+function renderCaloriesChart(stats) {
+  const calGoal = (RAW_DATA.profile || {}).daily_calorie_target || 2000;
+  const labels = stats.map(d => fmtDate(d.date));
+  const values = stats.map(d => d.calories || 0);
+
+  rebuildChart('chart-calories', {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '摄入热量',
+          data: values,
+          backgroundColor: values.map(v =>
+            v > calGoal * 1.1 ? 'rgba(224,92,92,.75)' :
+            v > calGoal * 0.85 ? 'rgba(240,168,67,.75)' :
+            'rgba(91,141,238,.75)'
+          ),
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+        {
+          label: '目标',
+          data: stats.map(() => calGoal),
+          type: 'line',
+          borderColor: 'rgba(255,255,255,.25)',
+          borderDash: [4, 4],
+          pointRadius: 0,
+          borderWidth: 1.5,
+          fill: false,
+        },
+      ],
+    },
+    options: commonOpts(),
+  });
+}
+
+function renderMacroDonut(stats) {
+  const nonZero = stats.filter(d => d.calories > 0);
+  const avg = key => nonZero.length
+    ? Math.round(nonZero.reduce((sum, item) => sum + (item[key] || 0), 0) / nonZero.length)
+    : 0;
+
+  const prot = avg('protein_g');
+  const carb = avg('carb_g');
+  const fat = avg('fat_g');
+  const protKcal = prot * 4;
+  const carbKcal = carb * 4;
+  const fatKcal = fat * 9;
+  const total = protKcal + carbKcal + fatKcal || 1;
+  const colors = ['#43c98a', '#5b8dee', '#f0a843'];
+  const labels = ['蛋白质', '碳水', '脂肪'];
+  const grams = [prot, carb, fat];
+
+  rebuildChart('chart-macro', {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data: [protKcal, carbKcal, fatKcal],
+        backgroundColor: colors,
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '70%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.label}: ${Math.round(ctx.parsed / total * 100)}%`,
+          },
+        },
+      },
+    },
+  });
+
+  document.getElementById('macro-legend').innerHTML = labels.map((label, index) => `
+    <div class="macro-item">
+      <span class="macro-dot" style="background:${colors[index]}"></span>
+      <span>${label}</span>
+      <span class="macro-item-val">${grams[index]}g</span>
+    </div>
+  `).join('');
+}
+
+function renderHeatmap(stats) {
+  const map = Object.fromEntries(stats.map(item => [item.date, item]));
+  const el = document.getElementById('heatmap');
+  const cells = [];
+
+  for (const date of lastNDates(CURRENT_DAYS)) {
+    const item = map[date];
+    cells.push({ key: date, trained: item ? !!item.trained : false });
+  }
+
+  el.innerHTML = cells.map(cell => `
+    <span
+      class="heatmap-cell ${cell.trained ? 'heatmap-trained' : 'heatmap-rest'}"
+      data-date="${cell.key}"
+      title="${cell.key}${cell.trained ? ' · 已训练' : ''}"
+    ></span>
   `).join('');
 }
 
@@ -220,6 +381,64 @@ function showError(text) {
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('error').classList.remove('hidden');
   document.getElementById('error-text').textContent = text;
+}
+
+function lastNDates(days) {
+  const dates = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dates.push(d.toISOString().slice(0, 10));
+  }
+  return dates;
+}
+
+function fmtDate(dateStr) {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function rebuildChart(id, config) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(canvas, config);
+}
+
+function commonOpts() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a1d27',
+        borderColor: '#2e3147',
+        borderWidth: 1,
+        titleColor: '#e8eaf0',
+        bodyColor: '#7c8099',
+        padding: 10,
+      },
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,.05)' },
+        ticks: { color: '#7c8099', maxRotation: 0 },
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,.05)' },
+        ticks: { color: '#7c8099' },
+      },
+    },
+  };
+}
+
+function commonLineOpts({ unit = '' } = {}) {
+  const opts = commonOpts();
+  opts.plugins.tooltip.callbacks = {
+    label: ctx => ` ${ctx.parsed.y}${unit}`,
+  };
+  return opts;
 }
 
 function escapeHtml(value) {
