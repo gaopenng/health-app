@@ -109,6 +109,7 @@ function aggregateUser(user, healthDataDir, days) {
     generated_at: new Date().toISOString(),
     user: {
       user_id: getUserId(user),
+      username: user.username || '',
       sender_id: user.sender_id,
       channel: user.channel,
       identities: user.identities,

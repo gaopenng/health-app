@@ -4,6 +4,7 @@
   "admin": {
     "user_id": "",
     "channel": "",
+    "username": "",
     "sender_id": "",
     "name": ""
   },

@@ -40,21 +40,27 @@
 1. 读取 {health_data_dir}/invites.json，查找 code 匹配项
 2. 校验：code 存在 && used_by=null && expires_at > today
 3. 若无效：回复"邀请码无效或已过期"
-4. 若有效：
-   a. 生成内部 `user_id` 与用户 `dashboard_token`（UUID v4）
-   b. 在 users.json 追加新用户记录：
-      - `user_id` 为内部主键
+4. 若有效但尚未拿到 username：
+   a. 回复：`怎么称呼你？请回复一个你希望使用的 username`
+   b. 暂存这次待注册状态（至少要记住 code、channel、sender_id）
+   c. 等用户回复 username 后继续
+5. 收到 username 后：
+   a. 校验 username 非空，且在 users.json 中不重复
+   b. 生成内部 `user_id`（UUID v4）与用户 `dashboard_token`（UUID v4）
+   c. 在 users.json 追加新用户记录：
+      - `user_id` 为内部主键，必须为 UUID v4
+      - `username` 为用户自己提供的稳定称呼
       - `identities[]` 至少写入当前这条 `{channel, sender_id}`
       - `daily_report_target` 默认为 `{channel}:dm:{sender_id}`；旧数据兼容 `dm:{sender_id}`
-   c. 创建目录 {health_data_dir}/{user_id}/
-   d. 写入默认 profile.json：
+   d. 创建目录 {health_data_dir}/{user_id}/
+   e. 写入默认 profile.json：
       - daily_calorie_target: 2000
       - protein_target_g: 120
       - carb_target_g: 250
       - fat_target_g: 65
       - weekly_workout_target: 3
-   e. 标记 invite code 的 used_by = 新用户 user_id
-   f. 回复注册成功消息 + 专属 Dashboard 链接
+   f. 标记 invite code 的 used_by = 新用户 user_id
+   g. 回复注册成功消息 + 专属 Dashboard 链接
 ```
 
 **回复格式：**
@@ -106,7 +112,8 @@ https://health.pages.dev?token=xyz789
 {
   "users": [
     {
-      "user_id": "akihi",
+      "user_id": "550e8400-e29b-41d4-a716-446655440000",
+      "username": "akihi",
       "sender_id": "123456789",
       "channel": "telegram",
       "identities": [
@@ -150,6 +157,8 @@ https://health.pages.dev?token=xyz789
 ## 身份映射约定
 
 - `user_id` 是内部稳定主键，也是数据目录名
+- `user_id` 必须为 UUID v4
+- `username` 是用户自定义的可读名称，应保持唯一
 - `identities[]` 是渠道身份映射，同一个真人跨 Telegram / 飞书时应追加身份，而不是新建第二个用户
 - 旧格式只有顶层 `sender_id` 的用户记录仍需兼容读取
 

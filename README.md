@@ -90,8 +90,9 @@ cp config.local.example.json config.local.json
 ```json
 {
   "admin": {
-    "user_id": "你的内部用户 ID",
+    "user_id": "",
     "channel": "telegram",
+    "username": "你的用户名",
     "sender_id": "你的飞书或 Telegram 用户 ID",
     "name": "你的显示名"
   }
@@ -99,7 +100,8 @@ cp config.local.example.json config.local.json
 ```
 
 说明：
-- `admin.user_id` 是内部稳定用户 ID，同一个人跨 Telegram / 飞书应保持不变
+- `admin.user_id` 可留空；首次初始化时会自动生成 UUID v4
+- `admin.username` 是用户自己决定的称呼，建议稳定、可读，例如 `akihi`
 - `admin.channel + admin.sender_id` 表示管理员的首个渠道身份
 - 后续新增其他渠道身份时，应追加到 `users.json` 的 `identities[]`，而不是新建第二个用户目录
 
@@ -157,10 +159,11 @@ openclaw agents bindings
 |------|--------|------|
 | `health_data_dir` | `~/.health` | 用户原始数据目录（不进 git） |
 | `dashboard_data_dir` | `./dashboard/data` | 看板聚合数据目录 |
-| `admin.user_id` | 空（必填） | 内部稳定用户 ID，同一真人跨渠道保持一致 |
+| `admin.user_id` | 空（可选） | 内部稳定用户 ID；为空时初始化脚本自动生成 UUID v4 |
 | `admin.channel` | 空（建议填） | 管理员当前主渠道，如 `telegram` / `feishu` |
+| `admin.username` | 空（必填） | 用户自己定义的稳定用户名 |
 | `admin.sender_id` | 空（必填） | 管理员的渠道用户 ID |
-| `admin.name` | 空（必填） | 管理员显示名 |
+| `admin.name` | 空（可选） | 管理员显示名；为空时回退为 `admin.username` |
 | `feishu.*` | 空（可选） | 仅在当前机器尚未配置飞书渠道时填写 |
 
 ## 用户模型
@@ -168,13 +171,15 @@ openclaw agents bindings
 `health-app` 现在区分两层身份：
 
 - `user_id`：内部唯一用户 ID，也是数据目录名
+- `username`：用户自己决定的可读名称
 - `identities[]`：渠道身份映射，例如 `telegram:8029666915`、`feishu:ou_xxx`
 
 示例：
 
 ```json
 {
-  "user_id": "akihi",
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "username": "akihi",
   "name": "Akihi",
   "identities": [
     { "channel": "telegram", "sender_id": "8029666915" },
@@ -198,6 +203,21 @@ node scripts/link-user-identity.js \
 ```
 
 这条命令只会更新 `users.json` 的身份映射，不会自动迁移旧目录里的历史文件。
+
+如果你要把旧的非 UUID 用户目录迁到新的 UUID `user_id`，可以运行：
+
+```bash
+node scripts/migrate-user-to-uuid.js \
+  --current-user-id old-id \
+  --username akihi
+```
+
+脚本会：
+- 为该用户生成或使用指定 UUID
+- 给用户写入 `username`
+- 去重 `identities[]`
+- 重命名用户数据目录
+- 备份原始 `users.json`
 
 ## OpenClaw 排障
 

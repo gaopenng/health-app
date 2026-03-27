@@ -1,7 +1,8 @@
 {
   "admin": {
-    "user_id": "your_user_id",
+    "user_id": "",
     "channel": "telegram",
+    "username": "your_username",
     "sender_id": "your_sender_id",
     "name": "your_name"
   },

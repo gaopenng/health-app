@@ -23,6 +23,8 @@
 ## 用户标识约定
 
 - 使用 `user_id` 作为内部唯一用户标识，使用 `identities[]` 维护渠道身份映射
+- `user_id` 必须使用 UUID v4
+- `username` 是用户自己定义的可读称呼，不参与数据目录命名
 - 私聊场景：`sender_id = 用户自己的渠道 ID`
 - 群组场景：`sender_id = @机器人的那个人的渠道 ID`
 - 用户数据目录：`{health_data_dir}/{user_id}/`
@@ -50,6 +52,10 @@
    - 若消息格式为 `加入 {CODE}`，调用 `user-manager` skill 处理注册
    - 否则回复：`您尚未注册，请联系管理员获取邀请码`
    - 不执行任何记录操作
+4.1 注册流程约束：
+   - 当邀请码有效时，若尚未拿到用户称呼，不要立刻建档
+   - 必须先追问：`怎么称呼你？请回复一个你希望使用的 username`
+   - 收到 username 后，再生成 UUID `user_id` 并完成建档
 5. 若匹配到用户：
    - 取该用户的 `user_id`
    - 所有读写均使用 `{health_data_dir}/{user_id}/`

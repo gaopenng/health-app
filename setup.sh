@@ -56,18 +56,27 @@ json_get() {
 
 HEALTH_DATA_DIR="$(json_get 'cfg.health_data_dir')"
 DASHBOARD_DATA_DIR="$(json_get 'cfg.dashboard_data_dir')"
-ADMIN_USER_ID="$(json_get 'cfg.admin && (cfg.admin.user_id || cfg.admin.sender_id)')"
+ADMIN_USER_ID="$(json_get 'cfg.admin && cfg.admin.user_id')"
 ADMIN_SENDER_ID="$(json_get 'cfg.admin && cfg.admin.sender_id')"
 ADMIN_CHANNEL="$(json_get 'cfg.admin && cfg.admin.channel')"
+ADMIN_USERNAME="$(json_get 'cfg.admin && cfg.admin.username')"
 ADMIN_NAME="$(json_get 'cfg.admin && cfg.admin.name')"
 
-if [ -z "$ADMIN_USER_ID" ] || [ -z "$ADMIN_SENDER_ID" ] || [ -z "$ADMIN_NAME" ]; then
-  echo "❌ 请先在 config.local.json 中填写 admin.user_id、admin.sender_id 和 admin.name"
+if [ -z "$ADMIN_USERNAME" ] || [ -z "$ADMIN_SENDER_ID" ]; then
+  echo "❌ 请先在 config.local.json 中填写 admin.username 和 admin.sender_id"
   exit 1
 fi
 
 if [ -z "$ADMIN_CHANNEL" ]; then
   ADMIN_CHANNEL="unknown"
+fi
+
+if [ -z "$ADMIN_USER_ID" ]; then
+  ADMIN_USER_ID="$(node -e "const { randomUUID } = require('crypto'); console.log(randomUUID())")"
+fi
+
+if [ -z "$ADMIN_NAME" ]; then
+  ADMIN_NAME="$ADMIN_USERNAME"
 fi
 
 if [ "$ADMIN_CHANNEL" = "unknown" ]; then
@@ -78,7 +87,7 @@ fi
 
 echo "📁 数据目录：$HEALTH_DATA_DIR"
 echo "📊 看板数据目录：$DASHBOARD_DATA_DIR"
-echo "👤 管理员：$ADMIN_NAME (user_id=$ADMIN_USER_ID, $ADMIN_CHANNEL:$ADMIN_SENDER_ID)"
+echo "👤 管理员：$ADMIN_NAME (@$ADMIN_USERNAME, user_id=$ADMIN_USER_ID, $ADMIN_CHANNEL:$ADMIN_SENDER_ID)"
 
 mkdir -p "$HEALTH_DATA_DIR"
 mkdir -p "$DASHBOARD_DATA_DIR"
@@ -97,6 +106,7 @@ if [ ! -f "$USERS_FILE" ]; then
       "user_id": "$ADMIN_USER_ID",
       "sender_id": "$ADMIN_SENDER_ID",
       "channel": "$ADMIN_CHANNEL",
+      "username": "$ADMIN_USERNAME",
       "identities": [
         {
           "channel": "$ADMIN_CHANNEL",

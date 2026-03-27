@@ -116,6 +116,7 @@ function renderUserMeta() {
     : '-';
   const items = [
     ['用户名称', user.name || '-'],
+    ['username', user.username || '-'],
     ['user_id', user.user_id || user.sender_id || '-'],
     ['主身份', user.sender_id ? `${user.channel || 'unknown'}:${user.sender_id}` : '-'],
     ['全部身份', identities],

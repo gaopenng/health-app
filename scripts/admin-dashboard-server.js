@@ -94,6 +94,7 @@ function getUsers() {
       const primaryIdentity = getPrimaryIdentity(user);
       return {
         user_id: getUserId(user),
+        username: user.username || '',
         sender_id: primaryIdentity?.sender_id || user.sender_id,
         channel: primaryIdentity?.channel || user.channel,
         identities: user.identities,

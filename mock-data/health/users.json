@@ -1,9 +1,10 @@
 {
   "users": [
     {
-      "user_id": "mock-user-momo",
+      "user_id": "11111111-1111-4111-8111-111111111111",
       "sender_id": "mock_user_001",
       "channel": "telegram",
+      "username": "momo",
       "identities": [
         {
           "channel": "telegram",
@@ -23,9 +24,10 @@
       "last_active_at": "2026-03-27"
     },
     {
-      "user_id": "mock-user-luna",
+      "user_id": "22222222-2222-4222-8222-222222222222",
       "sender_id": "mock_user_002",
       "channel": "telegram",
+      "username": "luna",
       "identities": [
         {
           "channel": "telegram",
