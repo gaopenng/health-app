@@ -90,7 +90,7 @@ function renderAll() {
   renderUserMeta();
   renderCharts();
   renderWeights();
-  renderRawList('diet-list', RAW_DATA.diets, '暂无饮食记录');
+  renderDietList();
   renderRawList('workout-list', RAW_DATA.workouts, '暂无训练记录');
   renderUserLink();
   syncUrl();
@@ -338,6 +338,85 @@ function renderRawList(targetId, records, emptyText) {
       </details>
     `;
   }).join('');
+}
+
+function renderDietList() {
+  const el = document.getElementById('diet-list');
+  const records = RAW_DATA.diets || [];
+  if (!records.length) {
+    el.innerHTML = '<div class="admin-empty">暂无饮食记录</div>';
+    return;
+  }
+
+  el.innerHTML = records.map(record => {
+    const meals = Array.isArray(record.meals) ? record.meals : [];
+    const summary = `${record.total_calories || 0} kcal · ${meals.length} 餐`;
+    return `
+      <details class="admin-record" open>
+        <summary>
+          <span>${escapeHtml(record.date || record.file || 'record')}</span>
+          <span class="admin-record-sub">${escapeHtml(summary)}</span>
+        </summary>
+        <div class="diet-day">
+          <div class="diet-day-meta">
+            <span>蛋白质 ${record.total_protein_g || 0} g</span>
+            <span>碳水 ${record.total_carb_g || 0} g</span>
+            <span>脂肪 ${record.total_fat_g || 0} g</span>
+            <span>文件 ${escapeHtml(record.file || '-')}</span>
+          </div>
+          <div class="diet-meal-list">
+            ${meals.length ? meals.map(meal => renderMealCard(meal)).join('') : '<div class="admin-empty">当天没有餐食明细</div>'}
+          </div>
+        </div>
+      </details>
+    `;
+  }).join('');
+}
+
+function renderMealCard(meal) {
+  const items = Array.isArray(meal.items) ? meal.items : [];
+  const mealType = formatMealType(meal.meal_type);
+  return `
+    <section class="diet-meal-card">
+      <div class="diet-meal-header">
+        <div>
+          <div class="diet-meal-title">${escapeHtml(mealType)}${meal.time ? ` · ${escapeHtml(meal.time)}` : ''}</div>
+          <div class="diet-meal-desc">${escapeHtml(meal.description || '未填写描述')}</div>
+        </div>
+        <div class="diet-meal-kcal">${meal.meal_calories || 0} kcal</div>
+      </div>
+      <div class="diet-meal-macro">
+        <span>蛋白质 ${meal.meal_protein_g || 0} g</span>
+        <span>碳水 ${meal.meal_carb_g || 0} g</span>
+        <span>脂肪 ${meal.meal_fat_g || 0} g</span>
+        <span>来源 ${escapeHtml(meal.source || '-')}</span>
+      </div>
+      <div class="diet-item-list">
+        ${items.length ? items.map(item => `
+          <div class="diet-item">
+            <div class="diet-item-name">${escapeHtml(item.name || '未命名食物')}</div>
+            <div class="diet-item-meta">
+              <span>${escapeHtml(item.amount || '-')}</span>
+              <span>${item.calories_est || 0} kcal</span>
+              <span>P ${item.protein_est_g || 0} g</span>
+              <span>C ${item.carb_est_g || 0} g</span>
+              <span>F ${item.fat_est_g || 0} g</span>
+            </div>
+          </div>
+        `).join('') : '<div class="admin-empty">没有食材条目</div>'}
+      </div>
+    </section>
+  `;
+}
+
+function formatMealType(value) {
+  const map = {
+    breakfast: '早餐',
+    lunch: '午餐',
+    dinner: '晚餐',
+    snack: '加餐',
+  };
+  return map[value] || value || '餐次';
 }
 
 function buildSummary(record) {
