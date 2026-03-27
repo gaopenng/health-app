@@ -37,8 +37,13 @@
       </div>
       <!-- 时间维度切换 -->
       <div class="range-toggle">
-        <button class="range-btn active" data-days="7">本周</button>
-        <button class="range-btn" data-days="30">本月</button>
+        <button class="range-btn" data-days="1">今天</button>
+        <button class="range-btn" data-days="7">一周</button>
+        <button class="range-btn active" data-days="30">30天</button>
+        <button class="range-btn" data-days="90">三个月</button>
+        <button class="range-btn" data-days="180">半年</button>
+        <button class="range-btn" data-days="365">一年</button>
+        <button class="range-btn" data-days="1095">三年</button>
       </div>
     </header>
 
@@ -47,7 +52,7 @@
       <!-- 摘要卡片 -->
       <section class="cards">
         <div class="card">
-          <div class="card-label">今日热量</div>
+          <div class="card-label" id="card-calories-label">今日热量</div>
           <div class="card-value" id="card-calories">—</div>
           <div class="card-sub" id="card-calories-sub"></div>
           <div class="card-bar-wrap">
@@ -55,7 +60,7 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-label">今日蛋白质</div>
+          <div class="card-label" id="card-protein-label">今日蛋白质</div>
           <div class="card-value" id="card-protein">—</div>
           <div class="card-sub" id="card-protein-sub"></div>
           <div class="card-bar-wrap">
@@ -63,12 +68,12 @@
           </div>
         </div>
         <div class="card">
-          <div class="card-label">最近体重</div>
+          <div class="card-label" id="card-weight-label">最近体重</div>
           <div class="card-value" id="card-weight">—</div>
           <div class="card-sub" id="card-weight-sub"></div>
         </div>
         <div class="card">
-          <div class="card-label">本周训练</div>
+          <div class="card-label" id="card-workouts-label">本周训练</div>
           <div class="card-value" id="card-workouts">—</div>
           <div class="card-sub" id="card-workouts-sub"></div>
         </div>
@@ -106,7 +111,7 @@
 
         <!-- 训练热力图 -->
         <div class="chart-card chart-card--small">
-          <div class="chart-title">训练热力图（近 30 天）</div>
+          <div class="chart-title" id="heatmap-title">训练热力图（近 30 天）</div>
           <div id="heatmap" class="heatmap"></div>
           <div class="heatmap-legend">
             <span class="heatmap-cell heatmap-rest"></span> 休息

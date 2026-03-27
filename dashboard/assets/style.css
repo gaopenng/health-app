@@ -106,6 +106,7 @@ body {
 .range-toggle {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 .range-btn {
   padding: 5px 16px;
@@ -285,6 +286,12 @@ body {
   .chart-wrap--donut { height: 160px; }
   .header-inner { align-items: flex-start; }
   .refresh-btn { width: 100%; }
+  .range-toggle { gap: 6px; }
+  .range-btn {
+    flex: 1 1 calc(33.333% - 6px);
+    min-width: 86px;
+    text-align: center;
+  }
 }
 
 

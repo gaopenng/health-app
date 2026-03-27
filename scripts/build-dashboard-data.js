@@ -131,7 +131,7 @@ function aggregateUser(user, healthDataDir, days) {
 function main() {
   const healthDataDir = path.resolve(getArg('--health-data-dir', defaultHealthDir));
   const outputDir = path.resolve(getArg('--output-dir', defaultOutputDir));
-  const days = Number.parseInt(getArg('--days', '30'), 10);
+  const days = Number.parseInt(getArg('--days', '1095'), 10);
   const userIdFilter = getArg('--user-id');
   const senderIdFilter = getArg('--sender-id');
   const channelFilter = getArg('--channel');
@@ -163,7 +163,7 @@ function main() {
 }
 
 if (hasArg('--help')) {
-  console.log('Usage: node scripts/build-dashboard-data.js [--health-data-dir DIR] [--output-dir DIR] [--days 30] [--user-id ID] [--sender-id ID] [--channel CHANNEL]');
+  console.log('Usage: node scripts/build-dashboard-data.js [--health-data-dir DIR] [--output-dir DIR] [--days 1095] [--user-id ID] [--sender-id ID] [--channel CHANNEL]');
   process.exit(0);
 }
 

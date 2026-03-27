@@ -4,7 +4,15 @@ const path = require('path');
 const { buildDailyFilePath } = require('./health-data-utils');
 
 const repoRoot = path.resolve(__dirname, '..');
-const outputRoot = path.resolve(process.argv[2] || path.join(repoRoot, 'mock-data', 'health'));
+const args = process.argv.slice(2);
+const outputRoot = path.resolve(getArg('--output-dir', args[0] || path.join(repoRoot, 'mock-data', 'health')));
+const totalDays = Number.parseInt(getArg('--days', '1095'), 10);
+
+function getArg(name, fallback = '') {
+  const index = args.indexOf(name);
+  if (index === -1 || index === args.length - 1) return fallback;
+  return args[index + 1];
+}
 
 function ensureDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
@@ -68,7 +76,7 @@ const users = [
       weekly_workout_target: 4,
     },
     baseWeight: 79.4,
-    trendPerDay: -0.05,
+    trendPerDay: -0.008,
     seed: 101,
   },
   {
@@ -90,7 +98,7 @@ const users = [
       weekly_workout_target: 3,
     },
     baseWeight: 63.8,
-    trendPerDay: 0.015,
+    trendPerDay: 0.002,
     seed: 202,
   },
 ];
@@ -232,7 +240,7 @@ writeJson(path.join(outputRoot, 'users.json'), {
     status: 'active',
     dashboard_token: user.dashboard_token,
     daily_report_target: user.daily_report_target,
-    registered_at: formatDate(isoDaysAgo(30)),
+    registered_at: formatDate(isoDaysAgo(totalDays - 1)),
     last_active_at: formatDate(new Date()),
   })),
 });
@@ -242,11 +250,13 @@ for (const user of users) {
   ensureDir(userDir);
   writeJson(path.join(userDir, 'profile.json'), user.profile);
 
-  for (let offset = 29; offset >= 0; offset -= 1) {
+  for (let offset = totalDays - 1; offset >= 0; offset -= 1) {
     const dateObj = isoDaysAgo(offset);
     const date = formatDate(dateObj);
-    const wave = Math.sin((29 - offset) / 4) * (hasUserId(user, '11111111-1111-4111-8111-111111111111') ? 0.25 : 0.18);
-    const weight = round(user.baseWeight + user.trendPerDay * (29 - offset) + wave, 1);
+    const elapsedDays = totalDays - 1 - offset;
+    const monthlyWave = Math.sin(elapsedDays / 14) * (hasUserId(user, '11111111-1111-4111-8111-111111111111') ? 0.35 : 0.24);
+    const longWave = Math.sin(elapsedDays / 90) * (hasUserId(user, '11111111-1111-4111-8111-111111111111') ? 0.8 : 0.55);
+    const weight = round(user.baseWeight + user.trendPerDay * elapsedDays + monthlyWave + longWave, 1);
     writeJson(buildDailyFilePath(userDir, 'weight', date), {
       date,
       time: formatTime(7, 15 + (offset % 20)),

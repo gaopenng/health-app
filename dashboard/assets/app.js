@@ -1,6 +1,6 @@
 /* ── 全局状态 ──────────────────────────────────────────────────────── */
 let DATA = null;         // 原始 JSON 数据
-let DAYS = 7;            // 当前时间维度（7 或 30）
+let DAYS = 30;           // 当前时间维度
 let charts = {};         // Chart.js 实例缓存
 let TOKEN = null;        // 当前 dashboard token
 
@@ -96,7 +96,7 @@ function render() {
   renderWeightChart(sliceWeight(DAYS));
   renderCaloriesChart(sliced);
   renderMacroDonut(sliced);
-  renderHeatmap();   // 热力图固定显示近 30 天
+  renderHeatmap();
   document.getElementById('day-detail').classList.add('hidden');
 }
 
@@ -126,47 +126,66 @@ function today() {
 /* ── 摘要卡片 ─────────────────────────────────────────────────────── */
 function renderCards(sliced) {
   const profile = DATA.profile || {};
-  const todayStr = today();
-  const todayData = (DATA.daily_stats || []).find(d => d.date === todayStr) || null;
-
-  // 热量
-  const cal      = todayData ? todayData.calories : null;
+  const nonZeroDays = sliced.filter(day => day.calories > 0);
+  const rangeLabel = getRangeLabel(DAYS);
+  const isSingleDay = DAYS === 1;
+  const totalCalories = sliced.reduce((sum, day) => sum + (day.calories || 0), 0);
+  const avgCalories = nonZeroDays.length ? Math.round(totalCalories / nonZeroDays.length) : 0;
   const calGoal  = profile.daily_calorie_target || 2000;
-  const calPct   = cal != null ? Math.min(cal / calGoal, 1) : 0;
-  const calOver  = cal != null && cal > calGoal;
-  document.getElementById('card-calories').textContent = cal != null ? `${cal} kcal` : '暂无';
+  const calValue = isSingleDay ? (sliced[0]?.calories ?? null) : (nonZeroDays.length ? avgCalories : null);
+  const calPct   = calValue != null ? Math.min(calValue / calGoal, 1) : 0;
+  const calOver  = calValue != null && calValue > calGoal;
+  document.getElementById('card-calories-label').textContent = isSingleDay ? '今日热量' : `${rangeLabel}日均热量`;
+  document.getElementById('card-calories').textContent = calValue != null ? `${calValue} kcal` : '暂无';
   document.getElementById('card-calories-sub').textContent =
-    cal != null ? `目标 ${calGoal} kcal · ${Math.round(calPct * 100)}%` : '今日尚未记录';
+    calValue != null
+      ? (isSingleDay
+          ? `目标 ${calGoal} kcal · ${Math.round(calPct * 100)}%`
+          : `累计 ${totalCalories} kcal · ${nonZeroDays.length}/${sliced.length} 天有记录`)
+      : `${rangeLabel}暂无饮食记录`;
   setBar('card-calories-bar', calPct, calOver ? 'over' : calPct > 0.85 ? 'warn' : '');
 
-  // 蛋白质
-  const prot     = todayData ? todayData.protein_g : null;
+  const totalProtein = sliced.reduce((sum, day) => sum + (day.protein_g || 0), 0);
+  const avgProtein = nonZeroDays.length ? Math.round(totalProtein / nonZeroDays.length) : 0;
   const protGoal = profile.protein_target_g || 120;
-  const protPct  = prot != null ? Math.min(prot / protGoal, 1) : 0;
-  document.getElementById('card-protein').textContent = prot != null ? `${prot} g` : '暂无';
+  const protValue = isSingleDay ? (sliced[0]?.protein_g ?? null) : (nonZeroDays.length ? avgProtein : null);
+  const protPct  = protValue != null ? Math.min(protValue / protGoal, 1) : 0;
+  document.getElementById('card-protein-label').textContent = isSingleDay ? '今日蛋白质' : `${rangeLabel}日均蛋白质`;
+  document.getElementById('card-protein').textContent = protValue != null ? `${protValue} g` : '暂无';
   document.getElementById('card-protein-sub').textContent =
-    prot != null ? `目标 ${protGoal} g · ${Math.round(protPct * 100)}%` : '今日尚未记录';
+    protValue != null
+      ? (isSingleDay
+          ? `目标 ${protGoal} g · ${Math.round(protPct * 100)}%`
+          : `累计 ${totalProtein} g · ${nonZeroDays.length}/${sliced.length} 天有记录`)
+      : `${rangeLabel}暂无蛋白记录`;
   setBar('card-protein-bar', protPct, '');
 
-  // 体重
-  const wh   = DATA.weight_history || [];
+  const wh   = sliceWeight(DAYS);
   const last = wh.length ? wh[wh.length - 1] : null;
+  const first = wh.length > 1 ? wh[0] : null;
   const prev = wh.length > 1 ? wh[wh.length - 2] : null;
+  document.getElementById('card-weight-label').textContent = isSingleDay ? '最近体重' : `${rangeLabel}体重变化`;
   document.getElementById('card-weight').textContent = last ? `${last.weight_kg} kg` : '暂无';
-  if (last && prev) {
-    const diff = (last.weight_kg - prev.weight_kg).toFixed(1);
+  if (!last) {
+    document.getElementById('card-weight-sub').textContent = `${rangeLabel}暂无体重记录`;
+  } else if (!isSingleDay && first) {
+    const diff = (last.weight_kg - first.weight_kg).toFixed(1);
     document.getElementById('card-weight-sub').textContent =
-      `较上次 ${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} kg`;
+      `${first.weight_kg} → ${last.weight_kg} kg · ${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} kg`;
+  } else if (last && prev) {
+    const diff = (last.weight_kg - prev.weight_kg).toFixed(1);
+    document.getElementById('card-weight-sub').textContent = `较上次 ${diff > 0 ? '↑' : '↓'} ${Math.abs(diff)} kg`;
   } else {
     document.getElementById('card-weight-sub').textContent = last ? last.date : '';
   }
 
-  // 训练
   const trainedDays = sliced.filter(d => d.trained).length;
+  const totalWorkoutCount = sliced.reduce((sum, day) => sum + (day.workout_count || 0), 0);
   const wkTarget    = profile.weekly_workout_target || 3;
+  document.getElementById('card-workouts-label').textContent = `${rangeLabel}训练`;
   document.getElementById('card-workouts').textContent = `${trainedDays} 天`;
   document.getElementById('card-workouts-sub').textContent =
-    DAYS === 7 ? `本周目标 ${wkTarget} 天` : `近 30 天`;
+    DAYS === 7 ? `本周目标 ${wkTarget} 天 · 共 ${totalWorkoutCount} 个动作` : `共 ${totalWorkoutCount} 个动作`;
 }
 
 function setBar(id, pct, extra) {
@@ -311,8 +330,13 @@ function renderHeatmap() {
   const stats  = DATA.daily_stats || [];
   const map    = Object.fromEntries(stats.map(d => [d.date, d]));
   const el     = document.getElementById('heatmap');
-  const days   = 30;
+  const days   = Math.min(Math.max(DAYS, 30), 180);
   const cells  = [];
+  const titleEl = document.getElementById('heatmap-title');
+
+  if (titleEl) {
+    titleEl.textContent = `训练热力图（近 ${days} 天）`;
+  }
 
   for (let i = days - 1; i >= 0; i--) {
     const d   = new Date();
@@ -357,7 +381,7 @@ function showDayDetail(dayData) {
   const workouts = (DATA.recent_workouts || []).find(w => w.date === dayData.date);
   const exList   = workouts && workouts.exercises.length
     ? workouts.exercises.join('、')
-    : '今日未训练';
+    : (dayData.trained ? `${dayData.workout_count || 0} 个动作` : '今日未训练');
 
   document.getElementById('day-detail-body').innerHTML = `
     <strong>🥗 热量</strong>：${dayData.calories || 0} / ${calGoal} kcal（${calPct}%）<br>
@@ -427,4 +451,15 @@ function commonLineOpts({ unit = '', suggestRangeFromData = false } = {}) {
 function fmtDate(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
   return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
+function getRangeLabel(days) {
+  if (days === 1) return '今天';
+  if (days === 7) return '一周';
+  if (days === 30) return '30天';
+  if (days === 90) return '三个月';
+  if (days === 180) return '半年';
+  if (days === 365) return '一年';
+  if (days === 1095) return '三年';
+  return `${days}天`;
 }
