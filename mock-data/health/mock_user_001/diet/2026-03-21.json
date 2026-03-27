@@ -1,0 +1,96 @@
+{
+  "date": "2026-03-21",
+  "meals": [
+    {
+      "id": "meal_001",
+      "meal_type": "breakfast",
+      "time": "08:10",
+      "description": "燕麦酸奶碗 + 水煮蛋",
+      "source": "text",
+      "items": [
+        {
+          "name": "燕麦酸奶碗",
+          "amount": "1 碗",
+          "calories_est": 391,
+          "protein_est_g": 22,
+          "carb_est_g": 42,
+          "fat_est_g": 12
+        },
+        {
+          "name": "水煮蛋",
+          "amount": "2 个",
+          "calories_est": 140,
+          "protein_est_g": 12,
+          "carb_est_g": 1,
+          "fat_est_g": 10
+        }
+      ],
+      "meal_calories": 531,
+      "meal_protein_g": 34,
+      "meal_carb_g": 43,
+      "meal_fat_g": 22
+    },
+    {
+      "id": "meal_002",
+      "meal_type": "lunch",
+      "time": "12:25",
+      "description": "鸡胸肉藜麦饭 + 时蔬",
+      "source": "image",
+      "items": [
+        {
+          "name": "鸡胸肉藜麦饭",
+          "amount": "1 份",
+          "calories_est": 538,
+          "protein_est_g": 38,
+          "carb_est_g": 54,
+          "fat_est_g": 18
+        },
+        {
+          "name": "时蔬",
+          "amount": "1 份",
+          "calories_est": 90,
+          "protein_est_g": 4,
+          "carb_est_g": 10,
+          "fat_est_g": 4
+        }
+      ],
+      "meal_calories": 628,
+      "meal_protein_g": 42,
+      "meal_carb_g": 64,
+      "meal_fat_g": 22
+    },
+    {
+      "id": "meal_003",
+      "meal_type": "dinner",
+      "time": "19:05",
+      "description": "牛肉意面 + 沙拉",
+      "source": "text",
+      "items": [
+        {
+          "name": "牛肉意面",
+          "amount": "1 盘",
+          "calories_est": 668,
+          "protein_est_g": 36,
+          "carb_est_g": 66,
+          "fat_est_g": 22
+        },
+        {
+          "name": "蔬菜沙拉",
+          "amount": "1 碗",
+          "calories_est": 110,
+          "protein_est_g": 3,
+          "carb_est_g": 8,
+          "fat_est_g": 7
+        }
+      ],
+      "meal_calories": 778,
+      "meal_protein_g": 39,
+      "meal_carb_g": 74,
+      "meal_fat_g": 29
+    }
+  ],
+  "total_calories": 1937,
+  "total_protein_g": 115,
+  "total_carb_g": 181,
+  "total_fat_g": 73
+}

@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "sender_id": "mock_user_001",
+      "name": "Momo",
+      "role": "member",
+      "status": "active",
+      "dashboard_token": "mock-dashboard-momo",
+      "daily_report_target": "dm:mock_user_001",
+      "registered_at": "2026-02-25",
+      "last_active_at": "2026-03-27"
+    },
+    {
+      "sender_id": "mock_user_002",
+      "name": "Luna",
+      "role": "member",
+      "status": "active",
+      "dashboard_token": "mock-dashboard-luna",
+      "daily_report_target": "dm:mock_user_002",
+      "registered_at": "2026-02-25",
+      "last_active_at": "2026-03-27"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "date": "2026-03-09",
+  "exercises": [
+    {
+      "id": "ex_001",
+      "time": "18:30",
+      "name": "臀桥",
+      "category": "strength",
+      "sets": [
+        {
+          "set_no": 1,
+          "reps": 8,
+          "weight_kg": 47
+        },
+        {
+          "set_no": 2,
+          "reps": 8,
+          "weight_kg": 49
+        },
+        {
+          "set_no": 3,
+          "reps": 8,
+          "weight_kg": 51
+        },
+        {
+          "set_no": 4,
+          "reps": 8,
+          "weight_kg": 53
+        }
+      ],
+      "total_volume_kg": 1600
+    },
+    {
+      "id": "ex_002",
+      "time": "19:00",
+      "name": "划船机",
+      "category": "cardio",
+      "sets": [],
+      "duration_min": 34,
+      "total_volume_kg": 0
+    }
+  ]
+}

@@ -143,6 +143,38 @@ http://127.0.0.1:4180/admin/
 
 适合排查“消息已经记录，但用户看板还没刷新”这类问题。
 
+## Mock 数据
+
+如果你要给后台调试看板演示两位用户近 30 天的数据，可以先生成仓库内置的 mock 原始数据：
+
+```bash
+node scripts/generate-mock-health-data.js
+```
+
+默认会写到：
+
+```
+./mock-data/health
+```
+
+生成内容包括：
+- 2 个活跃用户
+- 每人 30 天体重记录
+- 每人 30 天饮食记录
+- 每人约 3 周训练记录
+
+如果要让后台页直接读取这批 mock 数据，而不是读取真实 `~/.health`，可以这样启动：
+
+```bash
+HEALTH_DATA_DIR="$(pwd)/mock-data/health" PORT=4181 node scripts/admin-dashboard-server.js
+```
+
+浏览器地址：
+
+```
+http://127.0.0.1:4181/admin/
+```
+
 ## 本地看板预览
 
 如果你想先在本机查看后台看板，而不依赖 Cloudflare Pages，可以直接：
