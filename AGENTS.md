@@ -1,3 +1,3 @@
 # Repository Instructions
 
-- 每次修改完提交并推送。
+- 每次修改完提交。
