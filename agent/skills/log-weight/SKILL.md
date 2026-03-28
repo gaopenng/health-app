@@ -1,61 +1,55 @@
+---
+name: log-weight
+description: Extract body weight values from natural-language chat messages, normalize units, write the daily weight record, and reply with change versus the latest prior record. Use for body weight logging in chat.
+---
+
 # log-weight
 
-体重记录 Skill，从自然语言中提取体重数值并写入当日体重文件。
+Record one body-weight entry.
 
-## 输入参数
+## Required input
 
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `user_sender_id` | ✅ | 当前渠道中的用户 ID |
-| `user_id` | ✅ | 内部稳定用户 ID |
-| `user_channel` | ✅ | 当前渠道，如 `telegram` / `feishu` |
-| `data_dir` | ✅ | 用户数据目录，如 `~/.health/{user_id}/` |
-| `content` | ✅ | 包含体重的文字描述 |
-| `reply_target` | ✅ | 回复目标（群组 ID 或私聊 ID） |
-| `sender_name` | ✅ | 发送者显示名（群组回复前缀用） |
+- `user_sender_id`
+- `user_id`
+- `user_channel`
+- `data_dir`
+- `content`
+- `reply_target`
+- `sender_name`
 
-## 执行流程
+## Workflow
 
-```
-1. 用 LLM 提取体重数值，统一转换为 kg：
-   - 斤：除以 2（如"150斤" → 75.0 kg）
-   - 磅：乘以 0.453592（如"165 lbs" → 74.8 kg）
-   - kg：直接使用
+1. Extract the weight value from the user's message.
+2. Normalize to kilograms.
+   - `斤`: divide by 2
+   - `lb` or `lbs`: multiply by `0.453592`
+   - `kg`: use directly
+3. Build a validated payload for `scripts/append-weight-entry.js`.
+4. Call `scripts/append-weight-entry.js` to write today's weight record and fetch the latest prior record.
+5. Resolve the user's dashboard link.
+   - Read `dashboard_token` from the user's record.
+   - Combine it with `dashboard_public_base_url` from project configuration or runtime context.
+6. Trigger `sync-dashboard` asynchronously.
+7. Reply with the recorded weight, the change versus the latest prior record when available, and the dashboard link when available.
 
-2. 读取最近一次体重记录：
-   从今天往前遍历最近 7 天的 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`，取第一个存在的文件
+## Error handling
 
-3. 写入今日体重文件 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+- If no reliable weight value can be extracted, ask the user to send the number again with a unit.
+- If script validation fails, correct the payload and retry.
 
-4. 异步调用 sync-dashboard skill（非阻塞）
+## Output requirements
 
-5. 返回确认消息，附带与上次记录的对比
-```
+- Include the dashboard link whenever `dashboard_token` and `dashboard_public_base_url` are available.
+- Treat the dashboard link as part of the normal confirmation rather than optional decoration.
 
-## 回复格式
+## References
 
-```
-⚖️ [sender_name 的]体重已记录
-─────────────
-今日体重：75.2 kg
-较上次（75.8 kg）：↓ 0.6 kg
+- Read `references/payload-schema.md` for script input.
+- Read `references/weight-file-format.md` for the persisted structure.
+- Read `references/reply-format.md` for the confirmation layout.
+- Read `references/dashboard-link.md` for dashboard URL resolution.
 
-[📊 查看数据看板]
-```
+## Bundled scripts
 
-> 若无历史记录，省略对比行
-
-## 数据文件格式
-
-写入 `{data_dir}/weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`：
-
-```json
-{
-  "date": "2026-03-24",
-  "time": "08:00",
-  "weight_kg": 75.2,
-  "source": "manual"
-}
-```
-
-> V2 接入 Health Kit 后 `source` 改为 `"apple_health"` 或 `"huawei_health"`，数据层零改动
+- `scripts/append-weight-entry.js`: validates payloads, writes daily weight records, and returns prior-record delta data.
+- `scripts/health-data-utils.js`: shared file helpers used by the bundled script.

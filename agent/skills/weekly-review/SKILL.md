@@ -1,67 +1,44 @@
+---
+name: weekly-review
+description: Generate a per-user weekly health review from diet, workout, weight, and profile data, then prepare a push-ready weekly summary with concrete next-step suggestions and a dashboard link. Use when an agent needs to produce or deliver a weekly health review, including scheduled weekly review workflows.
+---
+
 # weekly-review
 
-每周周报 Skill，由 Cron 在每周日 20:00 触发，为所有活跃用户生成并推送周维度健康趋势分析。
+Generate a weekly health review for one user.
 
-## 触发方式
+## Required input
 
-OpenClaw Cron，表达式：`every sunday at 20:00`
+- `user_sender_id`: channel sender ID used for delivery
+- `user_id`: stable internal user ID
+- `data_dir`: user data directory
 
-Cron prompt：
-```
-执行每周周报推送任务。读取 {health_data_dir}/users.json，
-对所有 status=active 的用户，调用 weekly-review skill，
-传入各自的 user_id 与 data_dir，逐一生成并推送周报。
-```
+## Workflow
 
-## 输入参数
+1. Read the current week's files from Monday through Sunday:
+   - `diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+   - `workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+   - latest weight file from the same week
+2. Read `profile.json` for weekly and daily targets.
+3. Compute:
+   - total and average calories
+   - average protein, carb, and fat
+   - workout days versus target
+   - weight change from first available weekly weight to latest weekly weight
+4. Generate 2 to 3 concrete suggestions for next week.
+5. Resolve the delivery target from `daily_report_target`.
+6. Append the dashboard link using `dashboard_token`.
+7. Return a push-ready weekly review.
 
-| 参数 | 必填 | 说明 |
-|------|------|------|
-| `user_sender_id` | ✅ | 当前主推送身份的渠道 ID |
-| `user_id` | ✅ | 内部稳定用户 ID |
-| `data_dir` | ✅ | 用户数据目录 |
+## Output requirements
 
-## 执行流程
+- Include weekly diet summary.
+- Include workout frequency and highlights.
+- Include weight trend.
+- Include 2 to 3 specific next-step suggestions.
+- Include the dashboard link.
 
-```
-1. 读取本周（周一至周日）7 天的数据：
-   - `diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` × 7 → 每日热量、宏量
-   - `workout/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json` × 7 → 训练天数、训练量
-   - `weight/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`（取本周最新一次）
+## References
 
-2. 计算周汇总指标：
-   - 本周总热量 / 日均热量
-   - 日均蛋白质 / 碳水 / 脂肪
-   - 本周训练天数 vs 目标（来自 profile.json）
-   - 体重变化（本周首次 vs 最新）
-
-3. 用 LLM 生成下周改进建议（2–3 条，具体可执行）
-
-4. 读取 daily_report_target 决定推送目标
-5. 附上专属 Dashboard 链接
-```
-
-## 回复格式
-
-```
-📈 本周健康周报 · 2026-03-18 ~ 2026-03-24
-
-🥗 饮食
-日均热量：1580 / 2000 kcal  ▓▓▓▓▓▓▓▓░░ 79%
-日均蛋白质：95g / 目标 120g  ⚠️ 偏低
-日均碳水：190g  脂肪：52g
-
-🏋️ 训练
-本周训练：4 / 3 天（✅ 达标）
-训练动作：卧推、深蹲、跑步、引体向上
-
-⚖️ 体重变化
-76.0 kg → 75.2 kg（↓ 0.8 kg）
-
-💡 下周建议
-1. 每天增加 25g 蛋白质摄入，可在早餐加鸡蛋或希腊酸奶
-2. 训练强度可适当提升，尝试卧推增重 2.5kg
-3. 保持当前训练频率，继续稳定减脂
-
-[📊 查看完整数据看板]
-```
+- Read `references/report-format.md` for response structure.
+- Read `references/data-contract.md` for file and field conventions.
