@@ -221,6 +221,89 @@ function computeDietDescription(items = [], fallback = '') {
   return fallback || '未填写描述';
 }
 
+function isValidDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
+}
+
+function isValidTime(value) {
+  return /^\d{2}:\d{2}$/.test(String(value || '').trim());
+}
+
+function validateDietItems(items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return ['items must be a non-empty array'];
+  }
+
+  return items.flatMap((item, index) => {
+    const errors = [];
+    if (!String(item?.name || '').trim()) {
+      errors.push(`items[${index}].name is required`);
+    }
+    if (!String(item?.amount || item?.quantity || '').trim()) {
+      errors.push(`items[${index}].amount is required`);
+    }
+    return errors;
+  });
+}
+
+function validateDietToolInput(input = {}) {
+  const errors = [];
+  const date = String(input?.date || '').trim();
+  const time = String(input?.time || '').trim();
+  const mealType = normalizeMealType(input?.meal_type || input?.mealType);
+  const snackPeriod = normalizeSnackPeriod(input?.snack_period || input?.snackPeriod);
+  const slotKey = buildMealSlotKey(mealType, snackPeriod);
+
+  if (!String(input?.data_dir || input?.dataDir || '').trim()) {
+    errors.push('data_dir is required');
+  }
+  if (!isValidDate(date)) {
+    errors.push('date must use YYYY-MM-DD');
+  }
+  if (time && !isValidTime(time)) {
+    errors.push('time must use HH:MM');
+  }
+  if (!isSupportedMealType(mealType)) {
+    errors.push('meal_type must be one of breakfast, lunch, dinner, snack');
+  }
+  if (mealType === 'snack' && !['morning', 'afternoon', 'evening'].includes(snackPeriod)) {
+    errors.push('snack_period must be morning, afternoon, or evening when meal_type=snack');
+  }
+  if (mealType !== 'snack' && snackPeriod) {
+    errors.push('snack_period is only allowed when meal_type=snack');
+  }
+  if (!isSupportedDietSlot(slotKey)) {
+    errors.push('slot_key resolved from meal_type/snack_period is not supported');
+  }
+  errors.push(...validateDietItems(input?.items));
+
+  for (const [key, label] of [
+    ['meal_calories', 'meal_calories'],
+    ['meal_protein_g', 'meal_protein_g'],
+    ['meal_carb_g', 'meal_carb_g'],
+    ['meal_fat_g', 'meal_fat_g'],
+  ]) {
+    const raw = input?.[key];
+    if (raw == null || raw === '') {
+      errors.push(`${label} is required`);
+      continue;
+    }
+    if (!Number.isFinite(Number(raw)) || Number(raw) < 0) {
+      errors.push(`${label} must be a non-negative number`);
+    }
+  }
+
+  return {
+    ok: errors.length === 0,
+    errors,
+    normalized: {
+      meal_type: mealType,
+      snack_period: mealType === 'snack' ? snackPeriod : '',
+      slot_key: slotKey,
+    },
+  };
+}
+
 function normalizeLegacyDietArray(raw, date) {
   if (!Array.isArray(raw)) return null;
 
@@ -452,5 +535,6 @@ module.exports = {
   resolveUser,
   sortByDateTime,
   toNumber,
+  validateDietToolInput,
   writeJson,
 };

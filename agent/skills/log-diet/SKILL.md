@@ -41,13 +41,39 @@
      11:00–17:59 → afternoon
      18:00–23:59 → evening
 
-4. 禁止直接手写 JSON；必须调用：
-   `node {workspace}/../scripts/append-diet-entry.js`
-5. 该脚本负责读取 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+4. 禁止直接手写 JSON；必须把记录请求组织成一个“工具入参对象”，再调用：
+   `node {workspace}/../scripts/append-diet-entry.js --payload-json '<JSON>'`
+5. 工具入参必须只关心：
+   - `data_dir`
+   - `date`
+   - `time`
+   - `meal_type`
+   - `snack_period`（仅 snack）
+   - `description`
+   - `items`
+   - `meal_calories`
+   - `meal_protein_g`
+   - `meal_carb_g`
+   - `meal_fat_g`
+   - `source`
+   - `channel`
+   - `sender_id`
+   - `sender_name`
+   - `raw_text`
+   模型不需要关心“这是新增还是追加”，工具内部会按槽位自动判断
+6. 调用前必须先保证入参合法：
+   - `date = YYYY-MM-DD`
+   - `time = HH:MM`
+   - `meal_type ∈ {breakfast,lunch,dinner,snack}`
+   - `snack` 时必须提供 `snack_period ∈ {morning,afternoon,evening}`
+   - `items` 必须为非空数组，且每项至少有 `name` 和 `amount`
+   - 热量和三大营养素必须是非负数
+   若工具返回 `validation_error`，必须修正参数后再重试，而不是绕过工具直接写文件
+7. 该工具负责读取 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
    - 文件不存在则创建标准对象格式
    - 若发现旧版数组格式，先迁移为标准对象格式
    - 按餐次槽位追加写入并更新 total_calories / total_protein_g / total_carb_g / total_fat_g
-6. 餐次槽位规则：
+8. 餐次槽位规则：
    - `breakfast`
    - `lunch`
    - `dinner`
@@ -64,12 +90,17 @@
    - 晚上加餐可追加
    例如“早餐一份肠粉”后再说“还有一杯豆浆”，应并入同一个 breakfast 槽
 
-7. 读取 {data_dir}/profile.json 获取每日目标
-8. 计算今日累计与目标的差值，生成进度条（▓▓▓░░░）
+9. 工具成功后会返回：
+   - 命中的 `slot_key`
+   - 当前槽位聚合后的 `slot`
+   - 今日累计 `daily_totals`
 
-9. 异步调用 sync-dashboard skill（非阻塞，不等待完成）
+10. 读取 {data_dir}/profile.json 获取每日目标
+11. 计算今日累计与目标的差值，生成进度条（▓▓▓░░░）
 
-10. 返回确认消息
+12. 异步调用 sync-dashboard skill（非阻塞，不等待完成）
+
+13. 返回确认消息
     - 必须明确说明“已记录”
     - 必须给出本餐热量估算和今日累计
     - 若 input_type=image，不允许只返回图片识别点评而不写入文件

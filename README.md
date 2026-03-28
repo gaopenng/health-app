@@ -123,27 +123,35 @@ chmod +x setup.sh
 
 ### 饮食写入脚本
 
-饮食原始数据现在应统一通过脚本写入，而不是让 agent 直接手写 JSON：
+饮食原始数据现在应统一通过“工具脚本”写入，而不是让 agent 直接手写 JSON：
 
 ```bash
 node scripts/append-diet-entry.js \
-  --data-dir ~/.health/<user_id> \
-  --date 2026-03-28 \
-  --meal-type breakfast \
-  --description "双蛋肠粉" \
-  --items-json '[{"name":"双蛋肠粉","amount":"1份"}]' \
-  --meal-calories 450 \
-  --meal-protein-g 19 \
-  --meal-carb-g 42 \
-  --meal-fat-g 22 \
-  --channel telegram \
-  --sender-id 8029666915 \
-  --sender-name "yuyan Peng" \
-  --raw-text "早餐一份双蛋肠粉"
+  --payload-json '{
+    "data_dir":"~/.health/<user_id>",
+    "date":"2026-03-28",
+    "time":"09:30",
+    "meal_type":"breakfast",
+    "description":"双蛋肠粉",
+    "items":[{"name":"双蛋肠粉","amount":"1份"}],
+    "meal_calories":450,
+    "meal_protein_g":19,
+    "meal_carb_g":42,
+    "meal_fat_g":22,
+    "source":"text",
+    "channel":"telegram",
+    "sender_id":"8029666915",
+    "sender_name":"yuyan Peng",
+    "raw_text":"早餐一份双蛋肠粉"
+  }'
 ```
 
 特点：
 
+- 模型只需要构造合法入参，不需要判断“新增还是追加”
+- 工具内部会按槽位自动决定是新建还是追加
+- 入参会先做 schema 校验；不合法时返回结构化 `validation_error`
+- 成功后返回当前槽位和今日累计营养素，便于机器人直接组织回复
 - 统一写入 `diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
 - 若当天文件是旧版数组格式，会先自动迁移到标准对象格式
 - 同一天同一餐次槽位会自动追加，不会覆盖已有记录

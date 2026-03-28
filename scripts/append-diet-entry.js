@@ -2,6 +2,7 @@
 
 const {
   appendDietEntry,
+  validateDietToolInput,
 } = require('./health-data-utils');
 
 function printUsage() {
@@ -18,11 +19,16 @@ Usage:
     --meal-carb-g 42 \\
     --meal-fat-g 22
 
+Or:
+  node scripts/append-diet-entry.js \\
+    --payload-json '{"data_dir":"~/.health/<user_id>","date":"2026-03-28","meal_type":"breakfast","items":[{"name":"双蛋肠粉","amount":"1份"}],"meal_calories":450,"meal_protein_g":19,"meal_carb_g":42,"meal_fat_g":22}'
+
 Notes:
   - breakfast / lunch / dinner 会写入对应餐次槽位。
   - snack 需要搭配 --snack-period morning|afternoon|evening。
   - 同一天同一槽位会自动追加，不会覆盖原来的 items。
   - 旧版数组格式文件会自动迁移为统一的新格式后再追加。
+  - 推荐模型统一构造 payload-json，再调用这个工具。
 `);
 }
 
@@ -59,6 +65,12 @@ function required(value, name) {
   return String(value).trim();
 }
 
+function toNumber(value) {
+  if (value == null || value === '') return '';
+  const num = Number(value);
+  return Number.isFinite(num) ? num : value;
+}
+
 function nowLocalDateTime() {
   const now = new Date();
   const pad = value => String(value).padStart(2, '0');
@@ -77,39 +89,65 @@ function main() {
   }
 
   const now = nowLocalDateTime();
-  const dataDir = required(args['data-dir'], 'data-dir');
-  const date = String(args.date || now.date).trim();
-  const mealType = required(args['meal-type'], 'meal-type');
-  const items = parseJsonArg(args['items-json'], []);
+  const payload = args['payload-json']
+    ? parseJsonArg(args['payload-json'])
+    : {
+        data_dir: args['data-dir'],
+        date: args.date || now.date,
+        meal_type: args['meal-type'],
+        snack_period: args['snack-period'] || '',
+        time: args.time || now.time,
+        description: args.description || '',
+        source: args.source || 'text',
+        items: parseJsonArg(args['items-json'], []),
+        meal_calories: toNumber(args['meal-calories']),
+        meal_protein_g: toNumber(args['meal-protein-g']),
+        meal_carb_g: toNumber(args['meal-carb-g']),
+        meal_fat_g: toNumber(args['meal-fat-g']),
+        recorded_at: args['recorded-at'] || now.recordedAt,
+        channel: args.channel || '',
+        sender_id: args['sender-id'] || '',
+        sender_name: args['sender-name'] || '',
+        raw_text: args['raw-text'] || '',
+      };
 
+  const validation = validateDietToolInput(payload);
+  if (!validation.ok) {
+    process.stdout.write(`${JSON.stringify({
+      ok: false,
+      error_type: 'validation_error',
+      errors: validation.errors,
+      normalized: validation.normalized,
+    }, null, 2)}\n`);
+    process.exit(2);
+  }
+
+  const dataDir = required(payload.data_dir || payload.dataDir, 'data-dir');
   const result = appendDietEntry(dataDir, {
-    date,
-    meal_type: mealType,
-    snack_period: args['snack-period'] || '',
-    time: args.time || now.time,
-    description: args.description || '',
-    source: args.source || 'text',
-    items,
-    meal_calories: args['meal-calories'],
-    meal_protein_g: args['meal-protein-g'],
-    meal_carb_g: args['meal-carb-g'],
-    meal_fat_g: args['meal-fat-g'],
-    recorded_at: args['recorded-at'] || now.recordedAt,
-    channel: args.channel || '',
-    sender_id: args['sender-id'] || '',
-    sender_name: args['sender-name'] || '',
-    raw_text: args['raw-text'] || '',
+    ...payload,
+    date: String(payload.date || now.date).trim(),
+    meal_type: payload.meal_type,
+    snack_period: payload.snack_period || '',
+    time: payload.time || now.time,
+    recorded_at: payload.recorded_at || now.recordedAt,
   });
+
+  const slotKey = validation.normalized.slot_key;
+  const slot = result.data.meals.find(meal => meal.slot_key === slotKey) || null;
 
   process.stdout.write(`${JSON.stringify({
     ok: true,
-    file: result.filePath,
+    file_path: result.filePath,
     date: result.data.date,
-    meals: result.data.meals.length,
-    total_calories: result.data.total_calories,
-    total_protein_g: result.data.total_protein_g,
-    total_carb_g: result.data.total_carb_g,
-    total_fat_g: result.data.total_fat_g,
+    slot_key: slotKey,
+    slot,
+    daily_totals: {
+      total_calories: result.data.total_calories,
+      total_protein_g: result.data.total_protein_g,
+      total_carb_g: result.data.total_carb_g,
+      total_fat_g: result.data.total_fat_g,
+    },
+    meals_count: result.data.meals.length,
   }, null, 2)}\n`);
 }
 
