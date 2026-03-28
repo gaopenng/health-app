@@ -121,58 +121,57 @@ chmod +x setup.sh
 - 写入 `users.json`、`invites.json`、管理员 `profile.json`
 - 生成运行时配置 `agent/.openclaw/health-config.json`（git ignore）
 
-### 饮食写入脚本
+### 饮食记录格式与校验
 
-饮食原始数据现在应统一通过“工具脚本”写入，而不是让 agent 直接手写 JSON：
+饮食数据现在按标准结构直接写入绝对路径 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`，写入完成后再执行校验脚本获取汇总结果。
+模型只需要写 `items` 级别的营养估算；每餐 `meal_*` 和当天顶层 `total_*` 由校验脚本计算并回写。
 
-```bash
-node scripts/append-diet-entry.js \
-  --payload-json '{
-    "data_dir":"~/.health/<user_id>",
-    "date":"2026-03-28",
-    "time":"09:30",
-    "meal_type":"breakfast",
-    "description":"双蛋肠粉",
-    "items":[{"name":"双蛋肠粉","amount":"1份"}],
-    "meal_calories":450,
-    "meal_protein_g":19,
-    "meal_carb_g":42,
-    "meal_fat_g":22,
-    "source":"text",
-    "channel":"telegram",
-    "sender_id":"8029666915",
-    "sender_name":"yuyan Peng",
-    "raw_text":"早餐一份双蛋肠粉"
-  }'
+标准 meal 结构示例：
+
+```json
+{
+  "date": "2026-03-28",
+  "meals": [
+    {
+      "id": "meal_001",
+      "meal_type": "breakfast",
+      "time": "09:30",
+      "description": "双蛋肠粉",
+      "source": "text",
+      "items": [
+        {
+          "name": "双蛋肠粉",
+          "amount": "1份",
+          "calories_est": 450,
+          "protein_est_g": 19,
+          "carb_est_g": 42,
+          "fat_est_g": 22
+        }
+      ],
+      "channel": "telegram",
+      "sender_id": "8029666915",
+      "sender_name": "yuyan Peng"
+    }
+  ]
+}
 ```
 
-特点：
+校验命令：
 
-- 模型只需要构造合法入参，不需要判断“新增还是追加”
-- 工具内部会按槽位自动决定是新建还是追加
-- 入参会先做 schema 校验；不合法时返回结构化 `validation_error`
-- 成功后返回当前槽位和今日累计营养素，便于机器人直接组织回复
-- 统一写入 `diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
-- 若当天文件是旧版数组格式，会先自动迁移到标准对象格式
-- 同一天同一餐次槽位会自动追加，不会覆盖已有记录
-- 槽位固定只有 6 个：
-  - `breakfast`
-  - `lunch`
-  - `dinner`
-  - `snack:morning`
-  - `snack:afternoon`
-  - `snack:evening`
-- 支持三类加餐槽位：
-  - `--meal-type snack --snack-period morning`
-  - `--meal-type snack --snack-period afternoon`
-  - `--meal-type snack --snack-period evening`
+```bash
+node agent/skills/log-diet/scripts/validate-diet-day.js \
+  --data-dir ~/.health/<user_id> \
+  --date 2026-03-28 \
+  --meal-type breakfast
+```
 
-示例：
+规则：
 
-- 早餐后补一杯豆浆，应继续写入 `breakfast` 槽位
-- 午餐后补一份水果，应继续写入 `lunch` 槽位
-- 晚餐后补一杯酸奶，应继续写入 `dinner` 槽位
-- 下午茶酸奶水果，应写入 `snack:afternoon`
+- 同一天同一 `meal_type` 只能保留一个 meal。
+- `meal_type` 只允许 `breakfast`、`lunch`、`dinner`、`snack`。
+- `snack` 不再区分上午、下午、晚上。
+- `validate-diet-day.js` 会根据 `items[*]` 自动计算并回写 `meal_*` 与 `total_*`。
+- 回复里的累计营养值应使用校验脚本返回的 `daily_totals`。
 
 ### 4. 安装到 OpenClaw
 
@@ -251,7 +250,7 @@ openclaw agents bindings
 如果你要把新渠道身份手动绑定到已有用户，可以运行：
 
 ```bash
-node scripts/link-user-identity.js \
+node agent/skills/user-manager/scripts/link-user-identity.js \
   --user-id akihi \
   --channel telegram \
   --sender-id 8029666915
@@ -262,7 +261,7 @@ node scripts/link-user-identity.js \
 如果你要把旧的非 UUID 用户目录迁到新的 UUID `user_id`，可以运行：
 
 ```bash
-node scripts/migrate-user-to-uuid.js \
+node agent/skills/user-manager/scripts/migrate-user-to-uuid.js \
   --current-user-id old-id \
   --username akihi
 ```
@@ -373,7 +372,7 @@ http://127.0.0.1:4173/?token=<dashboard_token>
 如果只想刷新数据、不启动本地服务：
 
 ```bash
-node scripts/build-dashboard-data.js
+node agent/skills/sync-dashboard/scripts/build-dashboard-data.js
 ```
 
 ## 数据备份

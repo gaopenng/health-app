@@ -12,7 +12,7 @@ const {
   sortByDateTime,
 } = require('./health-data-utils');
 
-const repoRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(__dirname, '../../../..');
 const defaultHealthDir = path.join(os.homedir(), '.health');
 const defaultOutputDir = path.join(repoRoot, 'dashboard', 'data');
 const args = process.argv.slice(2);
@@ -163,7 +163,7 @@ function main() {
 }
 
 if (hasArg('--help')) {
-  console.log('Usage: node scripts/build-dashboard-data.js [--health-data-dir DIR] [--output-dir DIR] [--days 1095] [--user-id ID] [--sender-id ID] [--channel CHANNEL]');
+  console.log('Usage: node agent/skills/sync-dashboard/scripts/build-dashboard-data.js [--health-data-dir DIR] [--output-dir DIR] [--days 1095] [--user-id ID] [--sender-id ID] [--channel CHANNEL]');
   process.exit(0);
 }
 

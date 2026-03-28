@@ -5,67 +5,76 @@ description: Record diet entries from meal text or food images, estimate calorie
 
 # log-diet
 
-Record one meal or snack into the user's daily diet record.
+将一餐或一次加餐记录到用户当天的饮食数据中。
 
-## Required input
+## 必需输入
 
 - `user_sender_id`
 - `user_id`
 - `user_channel`
 - `data_dir`
-- `input_type`: `text` or `image`
-- `content`
+- `content`：可能包含文字、图片，或同时包含两者；至少要有一种有效内容
 - `reply_target`
 - `sender_name`
-- `meal_time` when the user explicitly provides a time reference
+- `meal_time`：当用户明确提供了进食时间时传入
 
-## Workflow
+## 工作流程
 
-1. If `input_type=image`, identify the foods and estimate portions from the image.
-2. Estimate for the meal:
-   - calories
-   - protein
-   - carb
-   - fat
-3. Determine `meal_type` from the user's instruction or the resolved local time.
-4. If `meal_type=snack`, determine `snack_period`.
-5. Build a validated payload for the diet append script.
-6. Call `scripts/append-diet-entry.js` with the payload.
-   - Do not hand-write the target JSON file directly.
-   - The bundled script uses the bundled `scripts/health-data-utils.js` helper.
-7. If the script returns a validation error, correct the payload and retry.
-8. Read `profile.json` for daily targets.
-9. Use the script's returned `daily_totals` for all cumulative values in the reply.
-10. Resolve the user's dashboard link.
-    - Read `dashboard_token` from the user's record.
-    - Combine it with `dashboard_public_base_url` from project configuration or runtime context.
-11. Trigger `sync-dashboard` asynchronously without blocking the user-facing confirmation.
-12. Return a confirmation message with the dashboard link when available.
+1. 先解析输入中的所有可用信息源。
+   - 如果有图片，先从图片中识别食物并估算分量。
+   - 如果有文字，用文字补充、修正或约束图片识别结果，例如菜名、做法、分量、是否吃完、具体时间。
+   - 如果同时有文字和图片，不要把两者视为互斥输入，必须合并判断。
+2. 估算本次进食的：
+   - 热量
+   - 蛋白质
+   - 碳水
+   - 脂肪
+3. 根据用户描述或解析出的本地时间确定 `meal_type`。
+   - `meal_type` 只允许 `breakfast`、`lunch`、`dinner`、`snack`。
+4. 确定目标文件绝对路径：`{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`。
+5. 按 `references/diet-file-format.md` 的规范直接写入当天饮食文件。
+   - 如果当天文件不存在，创建新的标准结构。
+   - 如果当天文件已存在，先读取现有内容，再把本次进食合并进对应餐次。
+   - 同一天同一 `meal_type` 只能保留一个 meal；如果命中已有餐次，向该餐次追加 `items`，并把该餐次的营养值累加，而不是创建重复 meal。
+   - 只需要写 item 级别的营养估算，不需要计算每餐 `meal_*` 或当天顶层 `total_*`。
+   - 不要把 `reply_target`、`user_id` 之类路由字段写入 diet 文件。
+6. 写入后调用 `scripts/validate-diet-day.js` 校验当天文件，并获取汇总结果。
+   - 传入 `data_dir`、`date`，以及本次写入对应的 `meal_type`。
+   - 由该脚本根据 `items[*].calories_est / protein_est_g / carb_est_g / fat_est_g` 计算并回写每餐 `meal_*` 与当天 `total_*`。
+   - 回复中的累计值全部使用校验脚本返回的 `daily_totals`。
+7. 如果校验失败，直接修正 JSON 文件后重试，直到校验通过。
+8. 读取 `profile.json` 获取每日目标。
+9. 解析用户的 dashboard 链接。
+    - 从用户记录中读取 `dashboard_token`。
+    - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
+10. 异步触发 `sync-dashboard`，不要阻塞用户侧确认消息。
+11. 在可用时返回带 dashboard 链接的确认消息。
 
-## Output requirements
+## 输出要求
 
-- Start with a clear confirmation that the meal was recorded.
-- Include the meal estimate.
-- Include today's cumulative calories, protein, carb, and fat.
-- Include the dashboard link whenever `dashboard_token` and `dashboard_public_base_url` are available.
-- Treat the dashboard link as part of the normal confirmation rather than optional decoration.
-- In image mode, do not stop at image commentary; always record the meal first.
-- Keep optional advice short and secondary.
+- 开头先明确说明这餐已经记录成功。
+- 必须包含本次进食的估算结果。
+- 必须包含当天累计的热量、蛋白质、碳水和脂肪。
+- 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
+- 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
+- 如果输入中包含图片，不要只停留在图片点评，必须先完成记录。
+- 如需补充建议，应保持简短并放在次要位置。
 
-## Error handling
+## 错误处理
 
-- If the image does not contain recognizable food, ask the user to describe what they ate.
-- If validation fails, repair the payload and retry.
-- If writing still fails, return a brief retry message and log the failure.
+- 如果图片中没有可识别的食物，但文字已经足够完成记录，直接按文字继续。
+- 如果图片和文字加起来仍不足以可靠判断吃了什么，要求用户补充文字描述。
+- 如果校验失败，修复写入后的 JSON 文件并重跑校验脚本。
+- 如果写入仍然失败，返回简短的稍后重试提示，并记录失败信息。
 
-## References
+## 参考资料
 
-- Read `references/payload-schema.md` for the script payload.
-- Read `references/diet-file-format.md` for the persisted file structure.
-- Read `references/reply-format.md` for confirmation examples.
-- Read `references/dashboard-link.md` for dashboard URL resolution.
+- 阅读 `references/diet-file-format.md`，了解持久化文件结构。
+- 阅读 `references/validation-script.md`，了解校验汇总脚本的调用方式与返回字段。
+- 阅读 `references/reply-format.md`，了解确认消息示例。
+- 阅读 `references/dashboard-link.md`，了解 dashboard URL 的拼接方式。
 
-## Bundled scripts
+## 内置脚本
 
-- `scripts/append-diet-entry.js`: validates payloads and appends diet records.
-- `scripts/health-data-utils.js`: shared file and normalization helpers used by the script.
+- `scripts/validate-diet-day.js`：校验当天饮食文件结构，并返回 `daily_totals` 与目标餐次汇总。
+- `scripts/health-data-utils.js`：脚本依赖的共享文件与数据标准化工具。

@@ -71,7 +71,7 @@ function dedupeIdentities(user) {
 }
 
 if (hasArg('--help')) {
-  console.log('Usage: node scripts/migrate-user-to-uuid.js --current-user-id OLD_ID --username USERNAME [--new-user-id UUID] [--name DISPLAY_NAME] [--health-data-dir DIR]');
+  console.log('Usage: node agent/skills/user-manager/scripts/migrate-user-to-uuid.js --current-user-id OLD_ID --username USERNAME [--new-user-id UUID] [--name DISPLAY_NAME] [--health-data-dir DIR]');
   process.exit(0);
 }
 

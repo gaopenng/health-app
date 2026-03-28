@@ -5,9 +5,9 @@ description: Extract body weight values from natural-language chat messages, nor
 
 # log-weight
 
-Record one body-weight entry.
+记录一条体重数据。
 
-## Required input
+## 必需输入
 
 - `user_sender_id`
 - `user_id`
@@ -17,39 +17,39 @@ Record one body-weight entry.
 - `reply_target`
 - `sender_name`
 
-## Workflow
+## 工作流程
 
-1. Extract the weight value from the user's message.
-2. Normalize to kilograms.
-   - `斤`: divide by 2
-   - `lb` or `lbs`: multiply by `0.453592`
-   - `kg`: use directly
-3. Build a validated payload for `scripts/append-weight-entry.js`.
-4. Call `scripts/append-weight-entry.js` to write today's weight record and fetch the latest prior record.
-5. Resolve the user's dashboard link.
-   - Read `dashboard_token` from the user's record.
-   - Combine it with `dashboard_public_base_url` from project configuration or runtime context.
-6. Trigger `sync-dashboard` asynchronously.
-7. Reply with the recorded weight, the change versus the latest prior record when available, and the dashboard link when available.
+1. 从用户消息中提取体重数值。
+2. 统一换算为千克。
+   - `斤`：除以 2
+   - `lb` 或 `lbs`：乘以 `0.453592`
+   - `kg`：直接使用
+3. 构造传给 `scripts/append-weight-entry.js` 的合法 payload。
+4. 调用 `scripts/append-weight-entry.js` 写入当天体重，并获取最近一次历史记录。
+5. 解析用户的 dashboard 链接。
+   - 从用户记录中读取 `dashboard_token`。
+   - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
+6. 异步触发 `sync-dashboard`。
+7. 回复中包含本次记录的体重、与最近历史记录相比的变化，以及在可用时附带 dashboard 链接。
 
-## Error handling
+## 错误处理
 
-- If no reliable weight value can be extracted, ask the user to send the number again with a unit.
-- If script validation fails, correct the payload and retry.
+- 如果无法可靠提取体重数值，要求用户重新发送并带上单位。
+- 如果脚本校验失败，修正 payload 后重试。
 
-## Output requirements
+## 输出要求
 
-- Include the dashboard link whenever `dashboard_token` and `dashboard_public_base_url` are available.
-- Treat the dashboard link as part of the normal confirmation rather than optional decoration.
+- 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
+- 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
 
-## References
+## 参考资料
 
-- Read `references/payload-schema.md` for script input.
-- Read `references/weight-file-format.md` for the persisted structure.
-- Read `references/reply-format.md` for the confirmation layout.
-- Read `references/dashboard-link.md` for dashboard URL resolution.
+- 阅读 `references/payload-schema.md`，了解脚本输入格式。
+- 阅读 `references/weight-file-format.md`，了解持久化结构。
+- 阅读 `references/reply-format.md`，了解确认消息格式。
+- 阅读 `references/dashboard-link.md`，了解 dashboard URL 的拼接方式。
 
-## Bundled scripts
+## 内置脚本
 
-- `scripts/append-weight-entry.js`: validates payloads, writes daily weight records, and returns prior-record delta data.
-- `scripts/health-data-utils.js`: shared file helpers used by the bundled script.
+- `scripts/append-weight-entry.js`：校验 payload、写入每日体重记录，并返回与上一条记录的差值信息。
+- `scripts/health-data-utils.js`：内置脚本使用的共享文件工具。

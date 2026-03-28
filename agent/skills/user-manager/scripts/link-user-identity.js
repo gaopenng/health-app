@@ -33,7 +33,7 @@ function writeJson(filePath, data) {
 }
 
 if (hasArg('--help')) {
-  console.log('Usage: node scripts/link-user-identity.js --user-id USER_ID --channel CHANNEL --sender-id SENDER_ID [--health-data-dir DIR]');
+  console.log('Usage: node agent/skills/user-manager/scripts/link-user-identity.js --user-id USER_ID --channel CHANNEL --sender-id SENDER_ID [--health-data-dir DIR]');
   process.exit(0);
 }
 

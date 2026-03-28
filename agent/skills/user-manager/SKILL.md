@@ -5,56 +5,56 @@ description: Manage user invitations, registration, identity mapping, and user l
 
 # user-manager
 
-Manage health-assistant users.
+管理健康助手的用户数据。
 
-## Intent routing
+## 意图路由
 
-Choose one subflow first:
+先确定要走哪一个子流程：
 
-- invite generation
-- user registration from invite code
-- user list query
+- 生成邀请码
+- 使用邀请码注册用户
+- 查询用户列表
 
-## Workflow
+## 工作流程
 
-### Invite generation
+### 生成邀请码
 
-1. Verify the operator has the `admin` role.
-2. Generate a 6-character invite code using uppercase letters and digits without ambiguous characters.
-3. Write the code to `invites.json` with a 7-day expiration.
-4. Return the code with usage instructions.
+1. 先校验操作者具有 `admin` 角色。
+2. 生成 6 位邀请码，只使用大写字母和数字，并避开易混淆字符。
+3. 将邀请码写入 `invites.json`，有效期为 7 天。
+4. 返回邀请码及其使用说明。
 
-### User registration
+### 用户注册
 
-1. Read `invites.json` and validate the invite code.
-2. If invalid or expired, return a rejection message.
-3. If valid and username is missing:
-   - ask the user how they want to be addressed
-   - persist pending registration state with at least `code`, `channel`, and `sender_id`
-4. After receiving a username:
-   - ensure it is non-empty and unique
-   - create `user_id` as UUID v4
-   - create `dashboard_token` as UUID v4
-   - append the user record to `users.json`
-   - add the current identity to `identities[]`
-   - create the user's directory
-   - write the default `profile.json`
-   - mark the invite as used
-5. Return the success message and dashboard link.
+1. 读取 `invites.json` 并校验邀请码。
+2. 如果邀请码无效或已过期，返回拒绝消息。
+3. 如果邀请码有效但缺少用户名：
+   - 询问用户希望如何称呼
+   - 持久化待完成注册状态，至少包含 `code`、`channel` 和 `sender_id`
+4. 收到用户名后：
+   - 确保用户名非空且唯一
+   - 生成 UUID v4 作为 `user_id`
+   - 生成 UUID v4 作为 `dashboard_token`
+   - 将用户记录追加到 `users.json`
+   - 把当前身份加入 `identities[]`
+   - 创建用户目录
+   - 写入默认 `profile.json`
+   - 将邀请码标记为已使用
+5. 返回注册成功消息和 dashboard 链接。
 
-### User listing
+### 查询用户列表
 
-1. Verify the operator has the `admin` role.
-2. Read `users.json`.
-3. Return a formatted list of users.
+1. 先校验操作者具有 `admin` 角色。
+2. 读取 `users.json`。
+3. 返回格式化后的用户列表。
 
-## References
+## 参考资料
 
-- Read `references/data-model.md` for `users.json` and `invites.json`.
-- Read `references/reply-format.md` for response examples.
+- 阅读 `references/data-model.md`，了解 `users.json` 和 `invites.json` 的数据模型。
+- 阅读 `references/reply-format.md`，了解响应示例。
 
-## Bundled scripts
+## 内置脚本
 
-- `scripts/link-user-identity.js`: link a new channel identity to an existing user.
-- `scripts/migrate-user-to-uuid.js`: migrate a legacy user record to a UUID-based user ID.
-- `scripts/health-data-utils.js`: shared helpers used by the bundled scripts.
+- `scripts/link-user-identity.js`：把新的渠道身份绑定到已有用户。
+- `scripts/migrate-user-to-uuid.js`：将历史用户记录迁移为基于 UUID 的用户 ID。
+- `scripts/health-data-utils.js`：内置脚本使用的共享工具。

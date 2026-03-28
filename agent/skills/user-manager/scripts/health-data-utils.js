@@ -144,58 +144,9 @@ function isSupportedMealType(value) {
   return ['breakfast', 'lunch', 'dinner', 'snack'].includes(value);
 }
 
-function normalizeSnackPeriod(value) {
-  const raw = String(value || '').trim().toLowerCase();
-  const map = {
-    morning: 'morning',
-    afternoon: 'afternoon',
-    evening: 'evening',
-    上午: 'morning',
-    下午: 'afternoon',
-    晚上: 'evening',
-    夜间: 'evening',
-  };
-  return map[raw] || '';
-}
-
 function toNumber(value) {
   const num = Number(value);
   return Number.isFinite(num) ? num : 0;
-}
-
-function makeDietMealId() {
-  return `meal_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function inferSnackPeriodFromTime(time = '') {
-  const normalized = String(time || '').trim().slice(0, 5);
-  if (!/^\d{2}:\d{2}$/.test(normalized)) return 'afternoon';
-  if (normalized < '11:00') return 'morning';
-  if (normalized < '18:00') return 'afternoon';
-  return 'evening';
-}
-
-function buildMealSlotKey(mealType, snackPeriod = '') {
-  const normalizedMealType = normalizeMealType(mealType);
-  if (normalizedMealType !== 'snack') return normalizedMealType;
-  const normalizedSnackPeriod = normalizeSnackPeriod(snackPeriod) || 'afternoon';
-  return `snack:${normalizedSnackPeriod}`;
-}
-
-function isSupportedDietSlot(slotKey) {
-  return [
-    'breakfast',
-    'lunch',
-    'dinner',
-    'snack:morning',
-    'snack:afternoon',
-    'snack:evening',
-  ].includes(slotKey);
-}
-
-function inferTimeFromRecordedAt(recordedAt = '') {
-  const value = String(recordedAt || '').trim();
-  return value.slice(11, 16) || '';
 }
 
 function normalizeDietItem(item = {}) {
@@ -221,170 +172,51 @@ function computeDietDescription(items = [], fallback = '') {
   return fallback || '未填写描述';
 }
 
-function isValidDate(value) {
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(value || '').trim());
-}
-
-function isValidTime(value) {
-  return /^\d{2}:\d{2}$/.test(String(value || '').trim());
-}
-
-function validateDietItems(items) {
-  if (!Array.isArray(items) || items.length === 0) {
-    return ['items must be a non-empty array'];
-  }
-
-  return items.flatMap((item, index) => {
-    const errors = [];
-    if (!String(item?.name || '').trim()) {
-      errors.push(`items[${index}].name is required`);
-    }
-    if (!String(item?.amount || item?.quantity || '').trim()) {
-      errors.push(`items[${index}].amount is required`);
-    }
-    return errors;
-  });
-}
-
-function validateDietToolInput(input = {}) {
-  const errors = [];
-  const date = String(input?.date || '').trim();
-  const time = String(input?.time || '').trim();
-  const mealType = normalizeMealType(input?.meal_type || input?.mealType);
-  const snackPeriod = normalizeSnackPeriod(input?.snack_period || input?.snackPeriod);
-  const slotKey = buildMealSlotKey(mealType, snackPeriod);
-
-  if (!String(input?.data_dir || input?.dataDir || '').trim()) {
-    errors.push('data_dir is required');
-  }
-  if (!isValidDate(date)) {
-    errors.push('date must use YYYY-MM-DD');
-  }
-  if (time && !isValidTime(time)) {
-    errors.push('time must use HH:MM');
-  }
-  if (!isSupportedMealType(mealType)) {
-    errors.push('meal_type must be one of breakfast, lunch, dinner, snack');
-  }
-  if (mealType === 'snack' && !['morning', 'afternoon', 'evening'].includes(snackPeriod)) {
-    errors.push('snack_period must be morning, afternoon, or evening when meal_type=snack');
-  }
-  if (mealType !== 'snack' && snackPeriod) {
-    errors.push('snack_period is only allowed when meal_type=snack');
-  }
-  if (!isSupportedDietSlot(slotKey)) {
-    errors.push('slot_key resolved from meal_type/snack_period is not supported');
-  }
-  errors.push(...validateDietItems(input?.items));
-
-  for (const [key, label] of [
-    ['meal_calories', 'meal_calories'],
-    ['meal_protein_g', 'meal_protein_g'],
-    ['meal_carb_g', 'meal_carb_g'],
-    ['meal_fat_g', 'meal_fat_g'],
-  ]) {
-    const raw = input?.[key];
-    if (raw == null || raw === '') {
-      errors.push(`${label} is required`);
-      continue;
-    }
-    if (!Number.isFinite(Number(raw)) || Number(raw) < 0) {
-      errors.push(`${label} must be a non-negative number`);
-    }
-  }
-
+function computeDietMealTotals(items = []) {
   return {
-    ok: errors.length === 0,
-    errors,
-    normalized: {
-      meal_type: mealType,
-      snack_period: mealType === 'snack' ? snackPeriod : '',
-      slot_key: slotKey,
-    },
+    meal_calories: items.reduce((sum, item) => sum + toNumber(item?.calories_est), 0),
+    meal_protein_g: items.reduce((sum, item) => sum + toNumber(item?.protein_est_g), 0),
+    meal_carb_g: items.reduce((sum, item) => sum + toNumber(item?.carb_est_g), 0),
+    meal_fat_g: items.reduce((sum, item) => sum + toNumber(item?.fat_est_g), 0),
   };
 }
 
-function normalizeLegacyDietArray(raw, date) {
-  if (!Array.isArray(raw)) return null;
-
-  const meals = raw.map((entry, index) => {
-    const nutrition = entry?.estimated_nutrition || {};
-    const recordedAt = String(entry?.recorded_at || '').trim();
-    const time = inferTimeFromRecordedAt(recordedAt);
-    const items = Array.isArray(entry?.items)
-      ? entry.items.map(normalizeDietItem)
-      : [];
-    const mealType = normalizeMealType(entry?.meal);
-    const snackPeriod = mealType === 'snack' ? inferSnackPeriodFromTime(time) : '';
-
-    return {
-      id: `legacy_${index + 1}`,
-      meal_type: mealType,
-      snack_period: snackPeriod,
-      slot_key: buildMealSlotKey(mealType, snackPeriod),
-      time,
-      description: entry?.text || computeDietDescription(items, entry?.meal),
-      source: entry?.source || 'text',
-      items,
-      meal_calories: toNumber(nutrition?.calories_kcal),
-      meal_protein_g: toNumber(nutrition?.protein_g),
-      meal_carb_g: toNumber(nutrition?.carbs_g),
-      meal_fat_g: toNumber(nutrition?.fat_g),
-      recorded_at: recordedAt,
-      channel: entry?.channel || '',
-      sender_id: entry?.sender_id || '',
-      sender_name: entry?.sender_name || '',
-      raw_text: entry?.text || '',
-    };
-  });
-
+function computeDietDailyTotals(meals = []) {
   return {
-    date,
-    meals,
-    total_calories: meals.reduce((sum, meal) => sum + toNumber(meal.meal_calories), 0),
-    total_protein_g: meals.reduce((sum, meal) => sum + toNumber(meal.meal_protein_g), 0),
-    total_carb_g: meals.reduce((sum, meal) => sum + toNumber(meal.meal_carb_g), 0),
-    total_fat_g: meals.reduce((sum, meal) => sum + toNumber(meal.meal_fat_g), 0),
-    legacy_format: true,
+    total_calories: meals.reduce((sum, meal) => sum + toNumber(meal?.meal_calories), 0),
+    total_protein_g: meals.reduce((sum, meal) => sum + toNumber(meal?.meal_protein_g), 0),
+    total_carb_g: meals.reduce((sum, meal) => sum + toNumber(meal?.meal_carb_g), 0),
+    total_fat_g: meals.reduce((sum, meal) => sum + toNumber(meal?.meal_fat_g), 0),
   };
 }
 
 function normalizeDietDailyRecord(raw, date = '') {
-  if (Array.isArray(raw)) return normalizeLegacyDietArray(raw, date);
-  if (!raw || typeof raw !== 'object') return null;
+  if (!raw || Array.isArray(raw) || typeof raw !== 'object') return null;
 
   const meals = Array.isArray(raw.meals)
     ? raw.meals.map((meal, index) => {
         const mealType = normalizeMealType(meal?.meal_type || meal?.meal);
-        const snackPeriod = mealType === 'snack'
-          ? normalizeSnackPeriod(meal?.snack_period) || inferSnackPeriodFromTime(meal?.time || inferTimeFromRecordedAt(meal?.recorded_at))
-          : '';
         const items = Array.isArray(meal?.items) ? meal.items.map(normalizeDietItem) : [];
+        const source = String(meal?.source || '').trim();
         return {
-          ...meal,
           id: meal?.id || `meal_${index + 1}`,
           meal_type: mealType,
-          snack_period: snackPeriod,
-          slot_key: meal?.slot_key || buildMealSlotKey(mealType, snackPeriod),
-          time: meal?.time || inferTimeFromRecordedAt(meal?.recorded_at),
-          description: meal?.description || computeDietDescription(items, meal?.meal_type),
+          time: String(meal?.time || '').trim().slice(0, 5),
+          description: String(meal?.description || computeDietDescription(items, mealType)).trim(),
+          source: ['text', 'image', 'mixed'].includes(source) ? source : 'text',
           items,
-          meal_calories: toNumber(meal?.meal_calories),
-          meal_protein_g: toNumber(meal?.meal_protein_g),
-          meal_carb_g: toNumber(meal?.meal_carb_g),
-          meal_fat_g: toNumber(meal?.meal_fat_g),
+          ...computeDietMealTotals(items),
+          channel: meal?.channel || '',
+          sender_id: meal?.sender_id || '',
+          sender_name: meal?.sender_name || '',
         };
       })
     : [];
 
   return {
-    ...raw,
     date: raw.date || date,
     meals,
-    total_calories: toNumber(raw.total_calories || meals.reduce((sum, meal) => sum + toNumber(meal.meal_calories), 0)),
-    total_protein_g: toNumber(raw.total_protein_g || meals.reduce((sum, meal) => sum + toNumber(meal.meal_protein_g), 0)),
-    total_carb_g: toNumber(raw.total_carb_g || meals.reduce((sum, meal) => sum + toNumber(meal.meal_carb_g), 0)),
-    total_fat_g: toNumber(raw.total_fat_g || meals.reduce((sum, meal) => sum + toNumber(meal.meal_fat_g), 0)),
+    ...computeDietDailyTotals(meals),
   };
 }
 
@@ -406,80 +238,6 @@ function readDietDailyRecord(dataDir, date) {
     filePath,
     data: normalizeDietDailyRecord(raw, date) || createEmptyDietDailyRecord(date),
   };
-}
-
-function appendDietEntry(dataDir, entry) {
-  const date = String(entry?.date || '').trim();
-  if (!date) {
-    throw new Error('appendDietEntry requires date');
-  }
-
-  const { filePath, data } = readDietDailyRecord(dataDir, date);
-  const mealType = normalizeMealType(entry?.meal_type || entry?.mealType);
-  const time = String(entry?.time || inferTimeFromRecordedAt(entry?.recorded_at)).trim().slice(0, 5);
-  const snackPeriod = mealType === 'snack'
-    ? normalizeSnackPeriod(entry?.snack_period || entry?.snackPeriod) || inferSnackPeriodFromTime(time)
-    : '';
-  const slotKey = buildMealSlotKey(mealType, snackPeriod);
-  if (!isSupportedMealType(mealType)) {
-    throw new Error(`unsupported meal_type: ${mealType}`);
-  }
-  if (!isSupportedDietSlot(slotKey)) {
-    throw new Error(`unsupported diet slot: ${slotKey}`);
-  }
-  const items = Array.isArray(entry?.items) ? entry.items.map(normalizeDietItem) : [];
-  const fallbackDescription = String(entry?.description || entry?.raw_text || '').trim();
-
-  const payload = {
-    meal_type: mealType,
-    snack_period: snackPeriod,
-    slot_key: slotKey,
-    time,
-    description: computeDietDescription(items, fallbackDescription),
-    source: entry?.source || 'text',
-    items,
-    meal_calories: toNumber(entry?.meal_calories),
-    meal_protein_g: toNumber(entry?.meal_protein_g),
-    meal_carb_g: toNumber(entry?.meal_carb_g),
-    meal_fat_g: toNumber(entry?.meal_fat_g),
-    recorded_at: entry?.recorded_at || '',
-    channel: entry?.channel || '',
-    sender_id: entry?.sender_id || '',
-    sender_name: entry?.sender_name || '',
-    raw_text: entry?.raw_text || '',
-  };
-
-  const existingMeal = data.meals.find(meal => meal.slot_key === slotKey);
-  if (existingMeal) {
-    existingMeal.items = [...existingMeal.items, ...payload.items];
-    existingMeal.meal_calories = toNumber(existingMeal.meal_calories) + payload.meal_calories;
-    existingMeal.meal_protein_g = toNumber(existingMeal.meal_protein_g) + payload.meal_protein_g;
-    existingMeal.meal_carb_g = toNumber(existingMeal.meal_carb_g) + payload.meal_carb_g;
-    existingMeal.meal_fat_g = toNumber(existingMeal.meal_fat_g) + payload.meal_fat_g;
-    existingMeal.description = computeDietDescription(existingMeal.items, existingMeal.description || payload.description);
-    existingMeal.source = existingMeal.source === payload.source ? existingMeal.source : 'mixed';
-    existingMeal.recorded_at = payload.recorded_at || existingMeal.recorded_at || '';
-    existingMeal.raw_text = [existingMeal.raw_text, payload.raw_text].filter(Boolean).join('\n');
-    existingMeal.sender_id = payload.sender_id || existingMeal.sender_id || '';
-    existingMeal.sender_name = payload.sender_name || existingMeal.sender_name || '';
-    existingMeal.channel = payload.channel || existingMeal.channel || '';
-    if (!existingMeal.time && payload.time) existingMeal.time = payload.time;
-  } else {
-    data.meals.push({
-      id: makeDietMealId(),
-      ...payload,
-    });
-  }
-
-  data.meals.sort(sortByDateTime);
-  data.total_calories = data.meals.reduce((sum, meal) => sum + toNumber(meal.meal_calories), 0);
-  data.total_protein_g = data.meals.reduce((sum, meal) => sum + toNumber(meal.meal_protein_g), 0);
-  data.total_carb_g = data.meals.reduce((sum, meal) => sum + toNumber(meal.meal_carb_g), 0);
-  data.total_fat_g = data.meals.reduce((sum, meal) => sum + toNumber(meal.meal_fat_g), 0);
-  delete data.legacy_format;
-
-  writeJson(filePath, data);
-  return { filePath, data };
 }
 
 function readDailyRecords(userDir, category, cutoffDate = '') {
@@ -513,19 +271,15 @@ function buildDailyFilePath(baseDir, category, date) {
 
 module.exports = {
   buildDailyFilePath,
-  appendDietEntry,
   createEmptyDietDailyRecord,
   getPrimaryIdentity,
   getUserDataDir,
   getUserId,
   getUserIdentities,
-  inferSnackPeriodFromTime,
-  isSupportedDietSlot,
   isSupportedMealType,
   normalizeChannel,
   normalizeDietDailyRecord,
   normalizeMealType,
-  normalizeSnackPeriod,
   normalizeUserRecord,
   listJsonFilesRecursive,
   readDietDailyRecord,
@@ -535,6 +289,5 @@ module.exports = {
   resolveUser,
   sortByDateTime,
   toNumber,
-  validateDietToolInput,
   writeJson,
 };

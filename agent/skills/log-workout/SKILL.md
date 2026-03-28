@@ -5,9 +5,9 @@ description: Parse workout messages into exercises, sets, reps, weights, or dura
 
 # log-workout
 
-Record one workout update.
+记录一次训练更新。
 
-## Required input
+## 必需输入
 
 - `user_sender_id`
 - `user_id`
@@ -17,41 +17,41 @@ Record one workout update.
 - `reply_target`
 - `sender_name`
 
-## Workflow
+## 工作流程
 
-1. Parse the workout description into normalized exercise data.
-2. For each exercise, determine:
+1. 将用户的训练描述解析为标准化的动作数据。
+2. 对每个动作确定以下字段：
    - `name`
    - `category`
-   - strength sets, reps, and weight when present
-   - cardio duration when present
-3. Build a validated payload for `scripts/append-workout-entry.js`.
-4. Let the script compute `total_volume_kg` for strength movements and append the exercise to today's workout file.
-5. Resolve the user's dashboard link.
-   - Read `dashboard_token` from the user's record.
-   - Combine it with `dashboard_public_base_url` from project configuration or runtime context.
-6. Trigger `sync-dashboard` asynchronously.
-7. Reply with a concise confirmation, the logged training summary, and the dashboard link when available.
+   - 如有力量训练数据，则提取组数、次数和重量
+   - 如有有氧训练数据，则提取时长
+3. 构造传给 `scripts/append-workout-entry.js` 的合法 payload。
+4. 让脚本为力量动作计算 `total_volume_kg`，并把动作追加到当天训练文件中。
+5. 解析用户的 dashboard 链接。
+   - 从用户记录中读取 `dashboard_token`。
+   - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
+6. 异步触发 `sync-dashboard`。
+7. 回复简洁确认消息，包含已记录的训练摘要，以及在可用时附带 dashboard 链接。
 
-## Error handling
+## 错误处理
 
-- If the workout message cannot be parsed into a reliable record, ask the user to resend it in a clearer structure.
-- If script validation fails, correct the payload and retry.
+- 如果训练消息无法稳定解析为可靠记录，要求用户用更清晰的结构重发。
+- 如果脚本校验失败，修正 payload 后重试。
 
-## Output requirements
+## 输出要求
 
-- Include the dashboard link whenever `dashboard_token` and `dashboard_public_base_url` are available.
-- Treat the dashboard link as part of the normal confirmation rather than optional decoration.
+- 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
+- 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
 
-## References
+## 参考资料
 
-- Read `references/payload-schema.md` for script input.
-- Read `references/parsing-examples.md` for normalization examples.
-- Read `references/workout-file-format.md` for the persisted structure.
-- Read `references/reply-format.md` for the confirmation layout.
-- Read `references/dashboard-link.md` for dashboard URL resolution.
+- 阅读 `references/payload-schema.md`，了解脚本输入格式。
+- 阅读 `references/parsing-examples.md`，了解标准化解析示例。
+- 阅读 `references/workout-file-format.md`，了解持久化结构。
+- 阅读 `references/reply-format.md`，了解确认消息格式。
+- 阅读 `references/dashboard-link.md`，了解 dashboard URL 的拼接方式。
 
-## Bundled scripts
+## 内置脚本
 
-- `scripts/append-workout-entry.js`: validates payloads, computes derived fields, and appends workout entries.
-- `scripts/health-data-utils.js`: shared file helpers used by the bundled script.
+- `scripts/append-workout-entry.js`：校验 payload、计算派生字段，并追加训练记录。
+- `scripts/health-data-utils.js`：内置脚本使用的共享文件工具。
