@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-28T14:13:09.511Z",
+  "generated_at": "2026-03-28T14:26:53.595Z",
   "user": {
     "user_id": "14fed3cc-8f8d-49ea-adac-aaab16062384",
     "username": "akihi",
@@ -14251,10 +14251,10 @@
     },
     {
       "date": "2026-03-28",
-      "calories": 1175,
-      "protein_g": 59,
-      "carb_g": 119,
-      "fat_g": 50,
+      "calories": 1665,
+      "protein_g": 85,
+      "carb_g": 170,
+      "fat_g": 70,
       "workout_count": 0,
       "trained": false
     }
