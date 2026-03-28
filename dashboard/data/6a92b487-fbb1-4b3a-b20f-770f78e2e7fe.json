@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-27T14:32:37.721Z",
+  "generated_at": "2026-03-28T14:13:09.511Z",
   "user": {
     "user_id": "14fed3cc-8f8d-49ea-adac-aaab16062384",
     "username": "akihi",
@@ -18,17 +18,13 @@
     "name": "akihi"
   },
   "profile": {
-    "daily_calorie_target": 2000,
-    "protein_target_g": 120,
+    "daily_calorie_target": 2350,
+    "protein_target_g": 160,
     "carb_target_g": 250,
     "fat_target_g": 65,
     "weekly_workout_target": 3
   },
   "weight_history": [
-    {
-      "date": "2023-03-29",
-      "weight_kg": 79.4
-    },
     {
       "date": "2023-03-30",
       "weight_kg": 79.4
@@ -4407,15 +4403,6 @@
     }
   ],
   "daily_stats": [
-    {
-      "date": "2023-03-29",
-      "calories": 1924,
-      "protein_g": 115,
-      "carb_g": 181,
-      "fat_g": 73,
-      "workout_count": 2,
-      "trained": true
-    },
     {
       "date": "2023-03-30",
       "calories": 2260,
@@ -14255,12 +14242,21 @@
     },
     {
       "date": "2026-03-27",
-      "calories": 740,
-      "protein_g": 40,
-      "carb_g": 63,
-      "fat_g": 35,
+      "calories": 670,
+      "protein_g": 39,
+      "carb_g": 40,
+      "fat_g": 37,
       "workout_count": 2,
       "trained": true
+    },
+    {
+      "date": "2026-03-28",
+      "calories": 1175,
+      "protein_g": 59,
+      "carb_g": 119,
+      "fat_g": 50,
+      "workout_count": 0,
+      "trained": false
     }
   ],
   "recent_workouts": [
