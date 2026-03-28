@@ -2,6 +2,8 @@
 
 The dashboard link in the confirmation is part of the normal expected output whenever `dashboard_token` and `dashboard_public_base_url` are available.
 
+All four daily totals must include a progress bar: calories, protein, carbs, and fat. This is mandatory, not optional.
+
 ## Confirmation example
 
 ```text
@@ -12,9 +14,9 @@ The dashboard link in the confirmation is part of the normal expected output whe
 ─────────────
 本餐合计：~397 kcal
 今日累计热量：897 / 2000 kcal ▓▓▓▓░░░░░░ 45%
-今日累计蛋白质：82 g
-今日累计碳水：109 g
-今日累计脂肪：29 g
+今日累计蛋白质：82 / 120 g ▓▓▓▓▓▓▓░░░ 68%
+今日累计碳水：109 / 250 g ▓▓▓▓░░░░░░ 44%
+今日累计脂肪：29 / 65 g ▓▓▓▓░░░░░░ 45%
 
 [📊 查看数据看板]
 ```

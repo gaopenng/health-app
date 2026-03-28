@@ -44,6 +44,7 @@ description: Record diet entries from meal text or food images, estimate calorie
    - 回复中的累计值全部使用校验脚本返回的 `daily_totals`。
 7. 如果校验失败，直接修正 JSON 文件后重试，直到校验通过。
 8. 读取 `profile.json` 获取每日目标。
+   - 至少使用这些目标字段来生成回复中的累计进度展示：`daily_calorie_target`、`protein_target_g`、`carb_target_g`、`fat_target_g`。
 9. 解析用户的 dashboard 链接。
     - 从用户记录中读取 `dashboard_token`。
     - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
@@ -55,6 +56,8 @@ description: Record diet entries from meal text or food images, estimate calorie
 - 开头先明确说明这餐已经记录成功。
 - 必须包含本次进食的估算结果。
 - 必须包含当天累计的热量、蛋白质、碳水和脂肪。
+- 热量、蛋白质、碳水、脂肪这四项累计值都必须带进度条，这是严格约束，不能只给数字。
+- 这四项都必须按“当前值 / 目标值 + 进度条 + 百分比”的形式展示；不能只给热量加进度条。
 - 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
 - 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
 - 如果输入中包含图片，不要只停留在图片点评，必须先完成记录。
