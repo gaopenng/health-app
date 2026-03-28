@@ -115,16 +115,97 @@ function sortByDateTime(a, b) {
   return left.localeCompare(right);
 }
 
+function inferDateFromPath(filePath) {
+  const base = path.basename(filePath, '.json');
+  return /^\d{4}-\d{2}-\d{2}$/.test(base) ? base : '';
+}
+
+function normalizeMealType(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  const map = {
+    breakfast: 'breakfast',
+    lunch: 'lunch',
+    dinner: 'dinner',
+    snack: 'snack',
+    早餐: 'breakfast',
+    午餐: 'lunch',
+    晚餐: 'dinner',
+    加餐: 'snack',
+  };
+  return map[raw] || raw || 'snack';
+}
+
+function toNumber(value) {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : 0;
+}
+
+function normalizeLegacyDietArray(raw, date) {
+  if (!Array.isArray(raw)) return null;
+
+  const meals = raw.map((entry, index) => {
+    const nutrition = entry?.estimated_nutrition || {};
+    const recordedAt = String(entry?.recorded_at || '').trim();
+    const time = recordedAt.slice(11, 16) || '';
+    const items = Array.isArray(entry?.items)
+      ? entry.items.map(item => ({
+          name: item?.name || '',
+          amount: item?.quantity || item?.amount || '',
+          calories_est: toNumber(item?.calories_est),
+          protein_est_g: toNumber(item?.protein_est_g),
+          carb_est_g: toNumber(item?.carb_est_g),
+          fat_est_g: toNumber(item?.fat_est_g),
+        }))
+      : [];
+
+    return {
+      id: `legacy_${index + 1}`,
+      meal_type: normalizeMealType(entry?.meal),
+      time,
+      description: entry?.text || items.map(item => item.name).filter(Boolean).join(' + ') || entry?.meal || '未填写描述',
+      source: entry?.source || 'text',
+      items,
+      meal_calories: toNumber(nutrition?.calories_kcal),
+      meal_protein_g: toNumber(nutrition?.protein_g),
+      meal_carb_g: toNumber(nutrition?.carbs_g),
+      meal_fat_g: toNumber(nutrition?.fat_g),
+      recorded_at: recordedAt,
+      channel: entry?.channel || '',
+      sender_id: entry?.sender_id || '',
+      sender_name: entry?.sender_name || '',
+      raw_text: entry?.text || '',
+    };
+  });
+
+  return {
+    date,
+    meals,
+    total_calories: meals.reduce((sum, meal) => sum + toNumber(meal.meal_calories), 0),
+    total_protein_g: meals.reduce((sum, meal) => sum + toNumber(meal.meal_protein_g), 0),
+    total_carb_g: meals.reduce((sum, meal) => sum + toNumber(meal.meal_carb_g), 0),
+    total_fat_g: meals.reduce((sum, meal) => sum + toNumber(meal.meal_fat_g), 0),
+    legacy_format: true,
+  };
+}
+
 function readDailyRecords(userDir, category, cutoffDate = '') {
   return listJsonFilesRecursive(path.join(userDir, category))
     .map(filePath => {
       const raw = readJson(filePath);
-      if (!raw || !raw.date) return null;
-      if (cutoffDate && raw.date < cutoffDate) return null;
+      if (raw == null) return null;
+      const inferredDate = inferDateFromPath(filePath);
+      const normalized =
+        category === 'diet' && Array.isArray(raw)
+          ? normalizeLegacyDietArray(raw, inferredDate)
+          : raw;
+      const date = normalized?.date || inferredDate;
+      if (!normalized || !date) return null;
+      if (cutoffDate && date < cutoffDate) return null;
       return {
         file: path.relative(path.join(userDir, category), filePath),
         path: filePath,
-        ...raw,
+        date,
+        ...normalized,
       };
     })
     .filter(Boolean)
