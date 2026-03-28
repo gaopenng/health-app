@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
-const { buildDailyFilePath } = require('./health-data-utils');
+const { buildDailyFilePath } = require('../../agent/skills/sync-dashboard/scripts/health-data-utils');
 
-const repoRoot = path.resolve(__dirname, '..');
 const args = process.argv.slice(2);
-const outputRoot = path.resolve(getArg('--output-dir', args[0] || path.join(repoRoot, 'mock-data', 'health')));
+const outputRoot = path.resolve(getArg('--output-dir', args[0] || path.join(__dirname, '..', 'health')));
 const totalDays = Number.parseInt(getArg('--days', '1095'), 10);
 
 function getArg(name, fallback = '') {

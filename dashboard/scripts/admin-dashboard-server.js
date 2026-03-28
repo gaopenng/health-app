@@ -13,10 +13,9 @@ const {
   readUsers,
   resolveUser,
   sortByDateTime,
-} = require('./health-data-utils');
+} = require('../../agent/skills/sync-dashboard/scripts/health-data-utils');
 
-const repoRoot = path.resolve(__dirname, '..');
-const dashboardRoot = path.join(repoRoot, 'dashboard');
+const dashboardRoot = path.resolve(__dirname, '..');
 const healthRoot = process.env.HEALTH_DATA_DIR || path.join(os.homedir(), '.health');
 const port = Number.parseInt(process.env.PORT || process.argv[2] || '4180', 10);
 

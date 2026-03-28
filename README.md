@@ -21,7 +21,9 @@ health-app/
 ├── config.json                # 配置文件（含默认值）
 ├── config.local.example.json  # 本地配置模板（不进 git）
 ├── setup.sh                   # 初始化数据目录并生成运行时配置
-├── scripts/                   # 本地聚合与预览脚本
+├── mock-data/
+│   ├── health/                # 仓库内置 mock 原始数据
+│   └── scripts/               # mock 数据生成脚本
 ├── agent/
 │   ├── AGENTS.md              # Agent 系统提示词
 │   ├── settings.json          # OpenClaw bindings 示例配置
@@ -36,6 +38,7 @@ health-app/
 └── dashboard/                 # Cloudflare Pages 静态站
     ├── index.html
     ├── assets/
+    ├── scripts/               # 本地后台调试脚本
     └── data/                  # 聚合数据（由 sync-dashboard 写入）
 ```
 
@@ -285,7 +288,7 @@ https://your-domain/?token=<dashboard_token>
 如果你要的是“后台调试页”，直接查看 `~/.health` 原始文件，而不是看聚合 JSON，可以启动本地 Node 服务：
 
 ```bash
-node scripts/admin-dashboard-server.js
+node dashboard/scripts/admin-dashboard-server.js
 ```
 
 默认会监听：
@@ -308,7 +311,7 @@ http://127.0.0.1:4180/admin/
 如果你要给后台调试看板演示两位用户近 30 天的数据，可以先生成仓库内置的 mock 原始数据：
 
 ```bash
-node scripts/generate-mock-health-data.js
+node mock-data/scripts/generate-mock-health-data.js
 ```
 
 默认会写到：
@@ -327,7 +330,7 @@ node scripts/generate-mock-health-data.js
 如果要让后台页直接读取这批 mock 数据，而不是读取真实 `~/.health`，可以这样启动：
 
 ```bash
-HEALTH_DATA_DIR="$(pwd)/mock-data/health" PORT=4181 node scripts/admin-dashboard-server.js
+HEALTH_DATA_DIR="$(pwd)/mock-data/health" PORT=4181 node dashboard/scripts/admin-dashboard-server.js
 ```
 
 浏览器地址：
@@ -338,13 +341,14 @@ http://127.0.0.1:4181/admin/
 
 ## 本地看板预览
 
-如果你想先在本机查看后台看板，而不依赖 Cloudflare Pages，可以直接：
+如果你想先在本机查看后台看板，而不依赖 Cloudflare Pages，可以先刷新聚合数据，再启动一个静态文件服务：
 
 ```bash
-./scripts/preview-dashboard.sh
+node agent/skills/sync-dashboard/scripts/build-dashboard-data.js
+python3 -m http.server 4173 --directory dashboard
 ```
 
-脚本会从 `~/.health/` 聚合活跃用户数据，写入 `dashboard/data/{dashboard_token}.json`。
+第一条命令会从 `~/.health/` 聚合活跃用户数据，写入 `dashboard/data/{dashboard_token}.json`。
 
 启动后，在浏览器打开：
 
