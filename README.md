@@ -147,6 +147,13 @@ node scripts/append-diet-entry.js \
 - 统一写入 `diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
 - 若当天文件是旧版数组格式，会先自动迁移到标准对象格式
 - 同一天同一餐次槽位会自动追加，不会覆盖已有记录
+- 槽位固定只有 6 个：
+  - `breakfast`
+  - `lunch`
+  - `dinner`
+  - `snack:morning`
+  - `snack:afternoon`
+  - `snack:evening`
 - 支持三类加餐槽位：
   - `--meal-type snack --snack-period morning`
   - `--meal-type snack --snack-period afternoon`
@@ -155,6 +162,8 @@ node scripts/append-diet-entry.js \
 示例：
 
 - 早餐后补一杯豆浆，应继续写入 `breakfast` 槽位
+- 午餐后补一份水果，应继续写入 `lunch` 槽位
+- 晚餐后补一杯酸奶，应继续写入 `dinner` 槽位
 - 下午茶酸奶水果，应写入 `snack:afternoon`
 
 ### 4. 安装到 OpenClaw

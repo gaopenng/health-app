@@ -140,6 +140,10 @@ function normalizeMealType(value) {
   return map[raw] || raw || 'snack';
 }
 
+function isSupportedMealType(value) {
+  return ['breakfast', 'lunch', 'dinner', 'snack'].includes(value);
+}
+
 function normalizeSnackPeriod(value) {
   const raw = String(value || '').trim().toLowerCase();
   const map = {
@@ -176,6 +180,17 @@ function buildMealSlotKey(mealType, snackPeriod = '') {
   if (normalizedMealType !== 'snack') return normalizedMealType;
   const normalizedSnackPeriod = normalizeSnackPeriod(snackPeriod) || 'afternoon';
   return `snack:${normalizedSnackPeriod}`;
+}
+
+function isSupportedDietSlot(slotKey) {
+  return [
+    'breakfast',
+    'lunch',
+    'dinner',
+    'snack:morning',
+    'snack:afternoon',
+    'snack:evening',
+  ].includes(slotKey);
 }
 
 function inferTimeFromRecordedAt(recordedAt = '') {
@@ -323,6 +338,12 @@ function appendDietEntry(dataDir, entry) {
     ? normalizeSnackPeriod(entry?.snack_period || entry?.snackPeriod) || inferSnackPeriodFromTime(time)
     : '';
   const slotKey = buildMealSlotKey(mealType, snackPeriod);
+  if (!isSupportedMealType(mealType)) {
+    throw new Error(`unsupported meal_type: ${mealType}`);
+  }
+  if (!isSupportedDietSlot(slotKey)) {
+    throw new Error(`unsupported diet slot: ${slotKey}`);
+  }
   const items = Array.isArray(entry?.items) ? entry.items.map(normalizeDietItem) : [];
   const fallbackDescription = String(entry?.description || entry?.raw_text || '').trim();
 
@@ -416,6 +437,8 @@ module.exports = {
   getUserId,
   getUserIdentities,
   inferSnackPeriodFromTime,
+  isSupportedDietSlot,
+  isSupportedMealType,
   normalizeChannel,
   normalizeDietDailyRecord,
   normalizeMealType,
