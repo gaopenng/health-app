@@ -49,11 +49,7 @@ description: Record diet entries from meal text or food images, estimate calorie
    - 建议是必需输出，不能省略。
    - 建议必须结合用户目标字段和当天累计完成度来写，不能给与数据无关的泛泛建议。
    - 建议应优先指出下一餐或今天剩余时段更适合补什么、控什么，保持简短且可执行。
-10. 解析用户的 dashboard 链接。
-    - 从用户记录中读取 `dashboard_token`。
-    - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-11. 标准饮食记录流程中，不要刷新或发布 Cloudflare dashboard。
-12. 标准确认消息中，不要把 dashboard 链接作为必带项；若用户明确要求查看看板，再按看板请求单独处理。
+10. 返回记录确认消息。
 
 ## 输出要求
 
@@ -64,8 +60,6 @@ description: Record diet entries from meal text or food images, estimate calorie
 - 这四项都必须按“当前值 / 目标值 + 进度条 + 百分比”的形式展示；不能只给热量加进度条。
 - 必须给出建议，这是严格约束，不能省略。
 - 建议必须明确基于用户目标和当天饮食情况，至少体现一条和当前累计差距直接相关的判断或下一步行动。
-- 标准饮食记录确认中不必附带 dashboard 链接。
-- 若用户明确要求查看最新看板，再单独触发看板刷新并返回链接。
 - 如果输入中包含图片，不要只停留在图片点评，必须先完成记录。
 - 建议应保持简短并放在次要位置，但仍然必须出现。
 
@@ -81,7 +75,6 @@ description: Record diet entries from meal text or food images, estimate calorie
 - 阅读 `references/diet-file-format.md`，了解持久化文件结构。
 - 阅读 `references/validation-script.md`，了解校验汇总脚本的调用方式与返回字段。
 - 阅读 `references/reply-format.md`，了解确认消息示例。
-- 阅读 `references/dashboard-link.md`，了解 dashboard URL 的拼接方式。
 
 ## 内置脚本
 

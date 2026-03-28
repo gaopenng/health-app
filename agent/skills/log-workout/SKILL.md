@@ -27,21 +27,12 @@ description: Parse workout messages into exercises, sets, reps, weights, or dura
    - 如有有氧训练数据，则提取时长
 3. 构造传给 `scripts/append-workout-entry.js` 的合法 payload。
 4. 让脚本为力量动作计算 `total_volume_kg`，并把动作追加到当天训练文件中。
-5. 解析用户的 dashboard 链接。
-   - 从用户记录中读取 `dashboard_token`。
-   - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-6. 标准训练记录流程中，不要刷新或发布 Cloudflare dashboard。
-7. 回复简洁确认消息，包含已记录的训练摘要；若用户明确要求查看看板，再单独刷新并返回链接。
+5. 回复简洁确认消息，包含已记录的训练摘要。
 
 ## 错误处理
 
 - 如果训练消息无法稳定解析为可靠记录，要求用户用更清晰的结构重发。
 - 如果脚本校验失败，修正 payload 后重试。
-
-## 输出要求
-
-- 标准训练记录确认中不必附带 dashboard 链接。
-- 若用户明确要求查看最新看板，再单独触发看板刷新并返回链接。
 
 ## 参考资料
 
@@ -49,8 +40,6 @@ description: Parse workout messages into exercises, sets, reps, weights, or dura
 - 阅读 `references/parsing-examples.md`，了解标准化解析示例。
 - 阅读 `references/workout-file-format.md`，了解持久化结构。
 - 阅读 `references/reply-format.md`，了解确认消息格式。
-- 阅读 `references/dashboard-link.md`，了解 dashboard URL 的拼接方式。
-
 ## 内置脚本
 
 - `scripts/append-workout-entry.js`：校验 payload、计算派生字段，并追加训练记录。
