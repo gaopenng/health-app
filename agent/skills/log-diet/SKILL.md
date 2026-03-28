@@ -36,10 +36,25 @@
      11:00–13:30 → lunch
      17:00–20:00 → dinner
      其他 → snack
+   - 若 meal_type=snack，再细分 snack_period：
+     06:00–10:59 → morning
+     11:00–17:59 → afternoon
+     18:00–23:59 → evening
 
-4. 读取 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`（不存在则创建空文件）
-5. 追加本餐记录，更新 total_calories / total_protein_g / total_carb_g / total_fat_g 汇总字段
-6. 写回文件
+4. 禁止直接手写 JSON；必须调用：
+   `node {workspace}/../scripts/append-diet-entry.js`
+5. 该脚本负责读取 `{data_dir}/diet/{YYYY}/{YYYY-MM}/{YYYY-MM-DD}.json`
+   - 文件不存在则创建标准对象格式
+   - 若发现旧版数组格式，先迁移为标准对象格式
+   - 按餐次槽位追加写入并更新 total_calories / total_protein_g / total_carb_g / total_fat_g
+6. 餐次槽位规则：
+   - `breakfast`
+   - `lunch`
+   - `dinner`
+   - `snack:morning`
+   - `snack:afternoon`
+   - `snack:evening`
+   同一天同一槽位再次记录时，应合并到已有槽位。例如“早餐一份肠粉”后再说“还有一杯豆浆”，应并入同一个 breakfast 槽
 
 7. 读取 {data_dir}/profile.json 获取每日目标
 8. 计算今日累计与目标的差值，生成进度条（▓▓▓░░░）
@@ -97,6 +112,7 @@
     {
       "id": "meal_001",
       "meal_type": "lunch",
+      "slot_key": "lunch",
       "time": "12:30",
       "description": "米饭 + 鸡胸肉",
       "source": "image",
@@ -114,13 +130,28 @@
       "meal_protein_g": 35,
       "meal_carb_g": 51,
       "meal_fat_g": 4.1
+    },
+    {
+      "id": "meal_002",
+      "meal_type": "snack",
+      "snack_period": "afternoon",
+      "slot_key": "snack:afternoon",
+      "time": "16:20",
+      "description": "希腊酸奶 + 香蕉",
+      "source": "text",
+      "items": [],
+      "meal_calories": 180,
+      "meal_protein_g": 11,
+      "meal_carb_g": 18,
+      "meal_fat_g": 4
     }
   ],
-  "total_calories": 397,
-  "total_protein_g": 35,
-  "total_carb_g": 51,
-  "total_fat_g": 4.1
+  "total_calories": 577,
+  "total_protein_g": 46,
+  "total_carb_g": 69,
+  "total_fat_g": 8.1
 }
 ```
 
 > `source`：`text`（文字输入）或 `image`（图片识别）
+> 同一天同一 `slot_key` 再次记录时，应合并到现有 meal，而不是新建第二个早餐或第二个同时间段加餐
