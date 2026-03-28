@@ -52,34 +52,33 @@ function lastNDates(days) {
   return out;
 }
 
-function readWeightHistory(userDir, cutoffDate) {
-  return readDailyRecords(userDir, 'weight', cutoffDate)
-    .map(entry => ({ date: entry.date, weight_kg: entry.weight_kg }));
-}
-
-function readDietMap(userDir) {
-  const map = new Map();
-  for (const entry of readDailyRecords(userDir, 'diet')) {
-    map.set(entry.date, entry);
+function safeMtimeMs(filePath) {
+  try {
+    return fs.statSync(filePath).mtimeMs;
+  } catch {
+    return 0;
   }
-  return map;
-}
-
-function readWorkoutMap(userDir) {
-  const map = new Map();
-  for (const entry of readDailyRecords(userDir, 'workout')) {
-    map.set(entry.date, entry);
-  }
-  return map;
 }
 
 function aggregateUser(user, healthDataDir, days) {
   const userDir = getUserDataDir(healthDataDir, user);
   const profile = readJson(path.join(userDir, 'profile.json'), {}) || {};
   const cutoffDate = formatDate(dateDaysAgo(days - 1));
-  const weightHistory = readWeightHistory(userDir, cutoffDate);
-  const dietMap = readDietMap(userDir);
-  const workoutMap = readWorkoutMap(userDir);
+  const usersFile = path.join(healthDataDir, 'users.json');
+  const weightEntries = readDailyRecords(userDir, 'weight', cutoffDate);
+  const dietEntries = readDailyRecords(userDir, 'diet');
+  const workoutEntries = readDailyRecords(userDir, 'workout');
+  const weightHistory = weightEntries
+    .map(entry => ({ date: entry.date, weight_kg: entry.weight_kg }));
+  const dietMap = new Map(dietEntries.map(entry => [entry.date, entry]));
+  const workoutMap = new Map(workoutEntries.map(entry => [entry.date, entry]));
+  const generatedAtMs = [
+    safeMtimeMs(usersFile),
+    safeMtimeMs(path.join(userDir, 'profile.json')),
+    ...weightEntries.map(entry => safeMtimeMs(entry.path)),
+    ...dietEntries.map(entry => safeMtimeMs(entry.path)),
+    ...workoutEntries.map(entry => safeMtimeMs(entry.path)),
+  ].reduce((max, value) => Math.max(max, value), 0);
   const dailyStats = lastNDates(days).map(date => {
     const diet = dietMap.get(date);
     const workout = workoutMap.get(date);
@@ -106,7 +105,7 @@ function aggregateUser(user, healthDataDir, days) {
     }));
 
   return {
-    generated_at: new Date().toISOString(),
+    generated_at: new Date(generatedAtMs || Date.now()).toISOString(),
     user: {
       user_id: getUserId(user),
       username: user.username || '',

@@ -52,7 +52,9 @@ description: Record diet entries from meal text or food images, estimate calorie
 10. 解析用户的 dashboard 链接。
     - 从用户记录中读取 `dashboard_token`。
     - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-11. 异步触发 `sync-dashboard`，不要阻塞用户侧确认消息。
+11. 记录成功后立即调用 `../sync-dashboard/scripts/publish-dashboard.js` 刷新并发布 dashboard 数据。
+    - 传入 `{health_data_dir}`、`{dashboard_data_dir}`、`{repo_root}`。
+    - 只提交 dashboard 聚合文件，不要把其他工作区改动一起提交。
 12. 在可用时返回带 dashboard 链接的确认消息。
 
 ## 输出要求

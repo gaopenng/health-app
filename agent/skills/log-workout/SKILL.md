@@ -30,7 +30,7 @@ description: Parse workout messages into exercises, sets, reps, weights, or dura
 5. 解析用户的 dashboard 链接。
    - 从用户记录中读取 `dashboard_token`。
    - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-6. 异步触发 `sync-dashboard`。
+6. 记录成功后立即调用 `../sync-dashboard/scripts/publish-dashboard.js` 刷新并发布 dashboard 数据。
 7. 回复简洁确认消息，包含已记录的训练摘要，以及在可用时附带 dashboard 链接。
 
 ## 错误处理
