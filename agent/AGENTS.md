@@ -48,7 +48,6 @@
 3. 读取 `{health_data_dir}/users.json`，按以下规则解析用户：
    - 先匹配 `user_id`
    - 否则在 `identities[]` 中查找 `{channel, sender_id}`
-   - 若是旧格式数据且只有顶层 `sender_id`，将其视为兼容身份
 4. 若未匹配到用户：
    - 若消息格式为 `加入 {CODE}`，调用 `user-manager` skill 处理注册
    - 否则回复明确注册引导，不要只回复一句泛化拒绝

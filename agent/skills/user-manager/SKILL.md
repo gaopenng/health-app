@@ -56,5 +56,4 @@ description: Manage user invitations, registration, identity mapping, and user l
 ## 内置脚本
 
 - `scripts/link-user-identity.js`：把新的渠道身份绑定到已有用户。
-- `scripts/migrate-user-to-uuid.js`：将历史用户记录迁移为基于 UUID 的用户 ID。
 - `scripts/health-data-utils.js`：内置脚本使用的共享工具。

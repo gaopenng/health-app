@@ -231,8 +231,6 @@ writeJson(path.join(outputRoot, 'sync_lock.json'), { pending: false });
 writeJson(path.join(outputRoot, 'users.json'), {
   users: users.map(user => ({
     user_id: user.user_id,
-    sender_id: user.identities[0].sender_id,
-    channel: user.identities[0].channel,
     username: user.username,
     identities: user.identities,
     name: user.name,

@@ -251,27 +251,12 @@ openclaw agents bindings
 
 ```bash
 node agent/skills/user-manager/scripts/link-user-identity.js \
-  --user-id akihi \
+  --user-id 550e8400-e29b-41d4-a716-446655440000 \
   --channel telegram \
   --sender-id 8029666915
 ```
 
 这条命令只会更新 `users.json` 的身份映射，不会自动迁移旧目录里的历史文件。
-
-如果你要把旧的非 UUID 用户目录迁到新的 UUID `user_id`，可以运行：
-
-```bash
-node agent/skills/user-manager/scripts/migrate-user-to-uuid.js \
-  --current-user-id old-id \
-  --username akihi
-```
-
-脚本会：
-- 为该用户生成或使用指定 UUID
-- 给用户写入 `username`
-- 去重 `identities[]`
-- 重命名用户数据目录
-- 备份原始 `users.json`
 
 ## 渠道内返回看板
 

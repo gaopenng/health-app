@@ -81,13 +81,8 @@ if (!alreadyExists) {
 
 rawTarget.user_id = userId;
 rawTarget.identities = identities;
-
-if (!rawTarget.sender_id) {
-  rawTarget.sender_id = String(senderId);
-}
-if (!rawTarget.channel) {
-  rawTarget.channel = channel;
-}
+delete rawTarget.sender_id;
+delete rawTarget.channel;
 
 writeJson(usersFile, usersData);
 

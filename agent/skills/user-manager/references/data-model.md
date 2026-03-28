@@ -8,8 +8,6 @@
     {
       "user_id": "550e8400-e29b-41d4-a716-446655440000",
       "username": "akihi",
-      "sender_id": "123456789",
-      "channel": "telegram",
       "identities": [
         {
           "channel": "telegram",
@@ -54,4 +52,3 @@
 - `user_id` must be UUID v4.
 - `username` should remain unique.
 - `identities[]` maps channel identities for the same person.
-- Legacy top-level `sender_id` records should remain readable.

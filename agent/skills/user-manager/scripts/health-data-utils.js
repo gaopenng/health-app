@@ -43,11 +43,11 @@ function normalizeChannel(value) {
 }
 
 function getUserId(user) {
-  return user?.user_id || user?.sender_id || '';
+  return String(user?.user_id || '').trim();
 }
 
 function getUserIdentities(user) {
-  const identities = Array.isArray(user?.identities)
+  return Array.isArray(user?.identities)
     ? user.identities
         .filter(identity => identity && identity.sender_id)
         .map(identity => ({
@@ -55,14 +55,6 @@ function getUserIdentities(user) {
           sender_id: String(identity.sender_id),
         }))
     : [];
-
-  if (identities.length) return identities;
-  if (!user?.sender_id) return [];
-
-  return [{
-    channel: normalizeChannel(user.channel),
-    sender_id: String(user.sender_id),
-  }];
 }
 
 function getPrimaryIdentity(user) {
@@ -76,8 +68,8 @@ function normalizeUserRecord(user) {
   return {
     ...user,
     user_id: userId,
-    sender_id: user?.sender_id || primaryIdentity?.sender_id || '',
-    channel: normalizeChannel(user?.channel || primaryIdentity?.channel),
+    sender_id: primaryIdentity?.sender_id || '',
+    channel: normalizeChannel(primaryIdentity?.channel),
     identities,
   };
 }
