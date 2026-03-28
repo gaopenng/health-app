@@ -45,11 +45,15 @@ description: Record diet entries from meal text or food images, estimate calorie
 7. 如果校验失败，直接修正 JSON 文件后重试，直到校验通过。
 8. 读取 `profile.json` 获取每日目标。
    - 至少使用这些目标字段来生成回复中的累计进度展示：`daily_calorie_target`、`protein_target_g`、`carb_target_g`、`fat_target_g`。
-9. 解析用户的 dashboard 链接。
+9. 基于用户目标与当天累计饮食情况生成简短建议。
+   - 建议是必需输出，不能省略。
+   - 建议必须结合用户目标字段和当天累计完成度来写，不能给与数据无关的泛泛建议。
+   - 建议应优先指出下一餐或今天剩余时段更适合补什么、控什么，保持简短且可执行。
+10. 解析用户的 dashboard 链接。
     - 从用户记录中读取 `dashboard_token`。
     - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-10. 异步触发 `sync-dashboard`，不要阻塞用户侧确认消息。
-11. 在可用时返回带 dashboard 链接的确认消息。
+11. 异步触发 `sync-dashboard`，不要阻塞用户侧确认消息。
+12. 在可用时返回带 dashboard 链接的确认消息。
 
 ## 输出要求
 
@@ -58,10 +62,12 @@ description: Record diet entries from meal text or food images, estimate calorie
 - 必须包含当天累计的热量、蛋白质、碳水和脂肪。
 - 热量、蛋白质、碳水、脂肪这四项累计值都必须带进度条，这是严格约束，不能只给数字。
 - 这四项都必须按“当前值 / 目标值 + 进度条 + 百分比”的形式展示；不能只给热量加进度条。
+- 必须给出建议，这是严格约束，不能省略。
+- 建议必须明确基于用户目标和当天饮食情况，至少体现一条和当前累计差距直接相关的判断或下一步行动。
 - 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
 - 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
 - 如果输入中包含图片，不要只停留在图片点评，必须先完成记录。
-- 如需补充建议，应保持简短并放在次要位置。
+- 建议应保持简短并放在次要位置，但仍然必须出现。
 
 ## 错误处理
 
