@@ -29,8 +29,8 @@ description: Extract body weight values from natural-language chat messages, nor
 5. 解析用户的 dashboard 链接。
    - 从用户记录中读取 `dashboard_token`。
    - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-6. 记录成功后立即调用 `../sync-dashboard/scripts/publish-dashboard.js` 刷新并发布 dashboard 数据。
-7. 回复中包含本次记录的体重、与最近历史记录相比的变化，以及在可用时附带 dashboard 链接。
+6. 标准体重记录流程中，不要刷新或发布 Cloudflare dashboard。
+7. 回复中包含本次记录的体重与最近历史记录相比的变化；若用户明确要求查看看板，再单独刷新并返回链接。
 
 ## 错误处理
 
@@ -39,8 +39,8 @@ description: Extract body weight values from natural-language chat messages, nor
 
 ## 输出要求
 
-- 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
-- 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
+- 标准体重记录确认中不必附带 dashboard 链接。
+- 若用户明确要求查看最新看板，再单独触发看板刷新并返回链接。
 
 ## 参考资料
 

@@ -69,12 +69,13 @@
 
 ## 看板链接规则
 
-- 若用户请求 `看板`、`查看数据看板`、`我的数据`、`打开看板`，优先直接返回专属线上看板链接
+- 若用户请求 `看板`、`查看数据看板`、`我的数据`、`打开看板`，先刷新线上看板，再返回专属线上看板链接
 - 生成方式：
-  1. 读取 `{health_data_dir}/users.json`
-  2. 找到当前用户的 `dashboard_token`
-  3. 若 `{dashboard_public_base_url}` 不为空，返回 `{dashboard_public_base_url}/?token={dashboard_token}`
-  4. 若 `{dashboard_public_base_url}` 为空，明确回复：`当前尚未配置线上看板域名，请联系管理员`
+  1. 调用 `sync-dashboard` skill，使用 `{health_data_dir}`、`{dashboard_data_dir}`、`{repo_root}` 刷新并发布最新看板数据
+  2. 读取 `{health_data_dir}/users.json`
+  3. 找到当前用户的 `dashboard_token`
+  4. 若 `{dashboard_public_base_url}` 不为空，返回 `{dashboard_public_base_url}/?token={dashboard_token}`
+  5. 若 `{dashboard_public_base_url}` 为空，明确回复：`当前尚未配置线上看板域名，请联系管理员`
 - 这类请求不应误判成普通健康咨询
 - 返回时必须给出可直接点击的完整 URL
 
@@ -86,7 +87,7 @@
 4. 饮食记录：包含食物名称的描述 → 调用 `log-diet` skill
 5. 训练记录：包含动作/组数/重量的描述 → 调用 `log-workout` skill
 6. 体重记录：包含体重数值（kg/斤） → 调用 `log-weight` skill
-7. 看板请求：`看板`、`查看数据看板`、`我的数据` → 直接返回专属线上看板链接
+7. 看板请求：`看板`、`查看数据看板`、`我的数据` → 先调用 `sync-dashboard`，再返回专属线上看板链接
 8. 查询请求：`今天吃了什么`、`这周训练` 等 → 直接读取文件回答
 9. 其他 → 作为健康相关咨询回答，不记录数据
 

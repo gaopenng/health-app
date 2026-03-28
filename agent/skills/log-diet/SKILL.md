@@ -52,10 +52,8 @@ description: Record diet entries from meal text or food images, estimate calorie
 10. 解析用户的 dashboard 链接。
     - 从用户记录中读取 `dashboard_token`。
     - 与项目配置或运行时上下文中的 `dashboard_public_base_url` 组合成完整链接。
-11. 记录成功后立即调用 `../sync-dashboard/scripts/publish-dashboard.js` 刷新并发布 dashboard 数据。
-    - 传入 `{health_data_dir}`、`{dashboard_data_dir}`、`{repo_root}`。
-    - 只提交 dashboard 聚合文件，不要把其他工作区改动一起提交。
-12. 在可用时返回带 dashboard 链接的确认消息。
+11. 标准饮食记录流程中，不要刷新或发布 Cloudflare dashboard。
+12. 标准确认消息中，不要把 dashboard 链接作为必带项；若用户明确要求查看看板，再按看板请求单独处理。
 
 ## 输出要求
 
@@ -66,8 +64,8 @@ description: Record diet entries from meal text or food images, estimate calorie
 - 这四项都必须按“当前值 / 目标值 + 进度条 + 百分比”的形式展示；不能只给热量加进度条。
 - 必须给出建议，这是严格约束，不能省略。
 - 建议必须明确基于用户目标和当天饮食情况，至少体现一条和当前累计差距直接相关的判断或下一步行动。
-- 只要 `dashboard_token` 和 `dashboard_public_base_url` 可用，就必须附带 dashboard 链接。
-- 把 dashboard 链接视为正常确认消息的一部分，而不是可有可无的装饰。
+- 标准饮食记录确认中不必附带 dashboard 链接。
+- 若用户明确要求查看最新看板，再单独触发看板刷新并返回链接。
 - 如果输入中包含图片，不要只停留在图片点评，必须先完成记录。
 - 建议应保持简短并放在次要位置，但仍然必须出现。
 

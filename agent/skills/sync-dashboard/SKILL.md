@@ -1,27 +1,29 @@
 ---
 name: sync-dashboard
-description: Aggregate user health data into dashboard JSON files and immediately commit and push the updated dashboard payloads after logging changes. Use when diet, workout, or weight updates should refresh dashboard data for one or more active users.
+description: Aggregate user health data into dashboard JSON files and publish them on demand before returning a dashboard link. Use when a user explicitly asks to open or view the latest dashboard.
 ---
 
 # sync-dashboard
 
-在健康数据发生变化后立即刷新 dashboard 数据，并通过 git push 触发 Cloudflare Pages 部署。
+当用户明确要求查看看板时，刷新 dashboard 数据，并通过 git push 触发 Cloudflare Pages 部署。
 
 ## 工作流程
 
-1. 读取运行时配置中的 `{health_data_dir}`、`{dashboard_data_dir}` 与 `{repo_root}`。
-2. 调用 `scripts/publish-dashboard.js`。
-3. 该脚本会：
+1. 仅在用户明确要求查看看板时执行，不要在饮食、体重、训练记录成功后自动执行。
+2. 读取运行时配置中的 `{health_data_dir}`、`{dashboard_data_dir}` 与 `{repo_root}`。
+3. 调用 `scripts/publish-dashboard.js`。
+4. 该脚本会：
    - 从 `users.json` 读取活跃用户
    - 聚合每个活跃用户的 dashboard 数据
    - 按用户 token 写出对应的 dashboard JSON 文件
    - 只提交 `dashboard_data_dir` 下的聚合结果
    - push 当前分支，触发 Cloudflare Pages 部署
-4. 若本次聚合后 `dashboard_data_dir` 没有变化，则不重复 commit / push。
+5. 若本次聚合后 `dashboard_data_dir` 没有变化，则不重复 commit / push。
 
 ## 输出要求
 
 - 基于最新健康数据生成 dashboard JSON。
+- 只在显式看板请求时触发发布。
 - 只提交 dashboard 聚合数据，不夹带其他工作区修改。
 - 若聚合结果未变化，不重复触发部署。
 
