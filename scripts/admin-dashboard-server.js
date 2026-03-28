@@ -95,8 +95,8 @@ function getUsers() {
       return {
         user_id: getUserId(user),
         username: user.username || '',
-        sender_id: primaryIdentity?.sender_id || user.sender_id,
-        channel: primaryIdentity?.channel || user.channel,
+        sender_id: primaryIdentity?.sender_id || '',
+        channel: primaryIdentity?.channel || '',
         identities: user.identities,
         name: user.name,
         role: user.role,

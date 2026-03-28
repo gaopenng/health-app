@@ -20,8 +20,3 @@ Preferred:
 
 - `{channel}:group:{groupId}`
 - `{channel}:dm:{senderId}`
-
-Legacy compatible:
-
-- `group:{groupId}`
-- `dm:{senderId}`

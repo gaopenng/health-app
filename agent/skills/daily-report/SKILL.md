@@ -29,7 +29,6 @@ description: Generate a per-user daily health summary from diet, workout, weight
    - 优先关注蛋白质缺口、热量超标、训练频率或体重趋势。
 7. 根据用户的 `daily_report_target` 解析投递目标。
    - 支持 `{channel}:group:{groupId}` 和 `{channel}:dm:{senderId}`。
-   - 也兼容历史格式 `group:{groupId}` 和 `dm:{senderId}`。
 8. 使用用户记录中的 `dashboard_token` 拼接用户的 dashboard 链接。
 9. 按正确的渠道格式返回可直接推送的日报内容。
 
